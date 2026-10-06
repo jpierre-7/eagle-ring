@@ -56,7 +56,7 @@ Test fixtures live in `tests/fixtures/`. Never put a fake Member in `src/content
 | `src/pages/` | The Directory, the ring pages and the 404 page |
 | `scripts/submission/` | The Submission checks, including the profile-page denylist |
 | `docs/spec.md` | The v1 spec: every design and behaviour decision, with links to where each was decided |
-| `CONTEXT.md` | The glossary (Member, Site, Directory, Ring Widget, Graduation Year, Standing, Submission, Maintainer) |
+| `GLOSSARY.md` | The glossary (Member, Site, Directory, Ring Widget, Graduation Year, Standing, Submission, Maintainer) |
 | `docs/member-example.yaml` | The example Member file from CONTRIBUTING |
 
 Decisions were worked out as GitHub issues before the build; the spec's decision log links each one.
