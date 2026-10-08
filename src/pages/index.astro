@@ -56,7 +56,7 @@ const rows = (list: Member[]) =>
   <div class="mx-auto flex min-h-[100dvh] max-w-7xl flex-col px-4 sm:px-8 lg:px-10">
     <header class="flex h-16 items-center justify-between gap-4 border-b border-line">
       <a href={url()} class="font-display text-xl font-extrabold tracking-tight">Eagle Ring</a>
-      <a href={JOIN_URL} class="join font-bold">Join the ring</a>
+      <a href={JOIN_URL} target="_blank" class="join font-bold">Join the ring</a>
     </header>
 
     <main class="flex-1">
@@ -71,7 +71,7 @@ const rows = (list: Member[]) =>
         !hasMembers && (
           <section class="border-t-2 border-ink py-12 md:py-16">
             <p class="text-2xl font-bold sm:text-3xl">No Members yet.</p>
-            <a href={JOIN_URL} class="join mt-4 inline-block text-xl font-bold">
+            <a href={JOIN_URL} target="_blank" class="join mt-4 inline-block text-xl font-bold">
               Join the ring
             </a>
           </section>
@@ -106,7 +106,7 @@ const rows = (list: Member[]) =>
                 A-Z
               </button>
             </div>
-            <a href={url('/ring/random')} class="random inline-flex min-h-11 items-center gap-2 whitespace-nowrap bg-accent px-4 font-extrabold text-on-accent">
+            <a href={url('/ring/random')} target="_blank" class="random inline-flex min-h-11 items-center gap-2 whitespace-nowrap bg-accent px-4 font-extrabold text-on-accent">
               <Icon name="shuffle" class="text-xl" />
               Random Site
             </a>
@@ -130,14 +130,14 @@ const rows = (list: Member[]) =>
                     {rows(bandMembers).map(({ member, domain, standing, search }) => (
                       <li class="row" data-member data-search={search}>
                         <div class="who">
-                          <a class="name" href={member.site}>
+                          <a class="name" href={member.site} target="_blank">
                             {member.name}
                           </a>
                           {standing && <span class="standing">{standing}</span>}
                           {member.tagline && <p class="tagline">{member.tagline}</p>}
                         </div>
                         <span class="site">{domain}</span>
-                        <a class="gh" href={`https://github.com/${member.github}`}>
+                        <a class="gh" href={`https://github.com/${member.github}`} target="_blank">
                           @{member.github}
                         </a>
                       </li>
@@ -157,14 +157,14 @@ const rows = (list: Member[]) =>
                         {member.graduationYear}
                       </span>
                       <div class="who">
-                        <a class="name" href={member.site}>
+                        <a class="name" href={member.site} target="_blank">
                           {member.name}
                         </a>
                         {standing && <span class="standing">{standing}</span>}
                         {member.tagline && <p class="tagline">{member.tagline}</p>}
                       </div>
                       <span class="site">{domain}</span>
-                      <a class="gh" href={`https://github.com/${member.github}`}>
+                      <a class="gh" href={`https://github.com/${member.github}`} target="_blank">
                         @{member.github}
                       </a>
                     </li>
