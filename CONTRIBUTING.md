@@ -7,6 +7,16 @@ Eagle Ring is a webring for Houston City College CS students and alumni. It has 
 
 This guide takes you from nothing to listed. You don't need to have used git before. Every step can be done in your web browser on github.com.
 
+## TL;DR (if you already know GitHub)
+
+1. Fork the repo and copy [`docs/member-example.yaml`](docs/member-example.yaml) to `src/content/members/<your-slug>.yaml`. The slug is 2 to 32 lowercase letters and digits in groups joined by single hyphens, like `kevin-tran`. It never changes after merge.
+2. Fill in `name`, `site`, `graduationYear` and `github`. `tagline` and `status` are optional. The rules are in [section 4](#4-every-field-and-its-rules).
+3. Open a PR against `main` that changes **only** that one file, and tick the three boxes in the template.
+4. Fix anything [CI](#5-what-ci-checks) flags. The Maintainer reviews your Site and merges.
+5. Optional: add the [Ring Widget](#6-adding-the-ring-widget) to your Site.
+
+New to GitHub? Skip this and follow the full guide below.
+
 A few words used below:
 
 - **Member**: someone listed in the Directory.
