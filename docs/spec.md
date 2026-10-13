@@ -1,6 +1,6 @@
 # Eagle Ring v1 spec
 
-Eagle Ring is a webring for Houston City College CS students, alumni and faculty: a public **Directory** of Members' personal **Sites**, plus an optional **Ring Widget** Members paste into their Sites to link them into a ring.
+Eagle Ring is a webring for Houston City College CS students, alumni, faculty and staff: a public **Directory** of Members' personal **Sites**, plus an optional **Ring Widget** Members paste into their Sites to link them into a ring.
 
 This spec is the handoff from the planning map [Eagle Ring — v1 spec](https://github.com/jpierre-7/eagle-ring/issues/1). Every decision in it is settled; the linked tickets hold the reasoning. A builder should be able to start here without reopening any of them. Terms in **bold capitals** (Member, Site, Directory, Ring Widget, Graduation Year, Standing, Faculty, Submission, Maintainer, School) are defined in [`GLOSSARY.md`](../GLOSSARY.md); use them in code, docs and UI copy.
 
@@ -108,9 +108,9 @@ jobs:
 
 ### Who can be a Member
 
-Anyone who takes, took, teaches or taught CS coursework at the School. A School degree is not required, so people who transferred out count. Eligibility is on the honour system; the Maintainer glances at the Site before merging.
+Anyone who takes or took CS coursework at the School, plus Faculty. A School degree is not required, so people who transferred out count. Eligibility is on the honour system; the Maintainer glances at the Site before merging.
 
-**Faculty** are Members who teach or have taught a CS course at the School, current or past, adjuncts included; TAs don't count. Faculty is a flag (`faculty: true`), not a Standing, so one person can be both an alum and Faculty. Faculty use the same ring and Ring Widget as everyone else, with no special ring order. The Maintainer checks a public School page (a course schedule or staff listing) before merging; if they can't verify it, they ask the person to remove `faculty: true`.
+**Faculty** are Members who teach or have taught a CS course at the School, or who work or worked there in a role that serves CS students, such as a dean or an advisor. Current or past, adjuncts included; TAs don't count. Faculty is a flag (`faculty: true`), not a Standing, so one person can be both an alum and Faculty. Faculty use the same ring and Ring Widget as everyone else, with no special ring order. The Maintainer checks a public School page (a course schedule or staff listing) before merging; if they can't verify it, they ask the person to remove `faculty: true`.
 
 ### Layout
 
@@ -195,11 +195,11 @@ A GitHub Actions workflow on `pull_request`:
 
 Three required checkboxes, an optional prompt for Faculty, and one free-text line:
 
-- [ ] I take, took, teach or taught CS coursework at the School.
+- [ ] I take or took CS coursework at the School, or I'm Faculty.
 - [ ] This Site is mine.
 - [ ] This PR changes only my Member file.
 
-*If you're Faculty, link a public School page that shows you teach CS.*
+*If you're Faculty, link a public School page that shows your role.*
 
 *Anything the Maintainer should know?*
 
@@ -231,9 +231,9 @@ Names the Maintainer for everything. Handing the ring over to a club later is a 
 ### Page structure (top to bottom)
 
 1. **Header:** the wordmark on the left and a *Join the ring* link on the right, pointing to `CONTRIBUTING.md` on GitHub. "Join the ring" is the page's only call to action; use the same words everywhere.
-2. **Headline:** *"Personal sites from Houston City College CS students and faculty, past and present."* Below it, a count line in mono: *"N Members across M Graduation Years"*, singular where it applies, plus *" and Faculty"* when the Faculty group exists (*"7 Members across 4 Graduation Years and Faculty"*). With Faculty only and no Graduation Years, it reads *"N Members in Faculty"*.
+2. **Headline:** *"Personal sites from Houston City College CS students, faculty and staff, past and present."* Below it, a count line in mono: *"N Members across M Graduation Years"*, singular where it applies, plus *" and Faculty & Staff"* when the Faculty group exists (*"7 Members across 4 Graduation Years and Faculty & Staff"*). With Faculty only and no Graduation Years, it reads *"N Members in Faculty & Staff"*.
 3. **Controls:**
-   - a labelled search field (label: *Search Members*) that matches name, Site, GitHub handle, tagline and year, and "faculty" for every Faculty Member;
+   - a labelled search field (label: *Search Members*) that matches name, Site, GitHub handle, tagline and year, and "faculty" or "staff" for every Faculty Member;
    - a *By year* / *A-Z* segmented toggle;
    - a yellow **Random Site** button with a Phosphor shuffle icon, linking to `/eagle-ring/ring/random`.
 4. **The roster.**
@@ -242,14 +242,14 @@ Names the Maintainer for everything. Handing the ring over to a club later is a 
 ### The roster: "roster in year bands"
 
 - **By year (the default):** one band per Graduation Year, newest first. Each band has the **full four-digit year** (`2019`, not `19`) as one large numeral on the left, stacked above the rows on mobile. Beside it is a list of **full-width Member rows**, sorted by name and separated by hairlines. No cards.
-  - Faculty with no Graduation Year come first, in a band headed **Faculty**, sorted by name the same way. Faculty who have a Graduation Year stay in their year band.
+  - Faculty with no Graduation Year come first, in a band headed **Faculty & Staff**, sorted by name the same way. Faculty who have a Graduation Year stay in their year band.
 - **Each row**, left to right:
-  - the name, which links to the Site, with the **Faculty** label (for Faculty) and the Standing (if set) in mono next to it, and the tagline (if set) underneath. The Faculty label comes before the Standing and is a filled yellow tag with near-black text (`bg-accent` / `text-on-accent`, 11.6:1 in both modes), so it stands out more than the plain-text Standing;
+  - the name, which links to the Site, with the **Faculty & Staff** label (for Faculty) and the Standing (if set) in mono next to it, and the tagline (if set) underneath. The Faculty label comes before the Standing and is a filled yellow tag with near-black text (`bg-accent` / `text-on-accent`, 11.6:1 in both modes), so it stands out more than the plain-text Standing;
   - the Site domain, in mono;
   - `@github` in mono, linking to the GitHub profile.
 
   The whole row is clickable to the Site. The GitHub link sits above that layer and stays separately clickable.
-- **A-Z:** the bands go away. One roster sorted by name, with the full Graduation Year at the start of each row, or **Faculty** for Faculty with no Graduation Year.
+- **A-Z:** the bands go away. One roster sorted by name, with the full Graduation Year at the start of each row, or **Faculty & Staff** for Faculty with no Graduation Year.
 - **Search with no results:** *No Members match "…"* and a *Clear search* button.
 
 ### Small rings

@@ -14,6 +14,7 @@ import {
   members,
   countLine,
   graduationYearLabel,
+  FACULTY_LABEL,
   groupByGraduationYear,
   sortByName,
   siteDomain,
@@ -31,7 +32,7 @@ const hasControls = members.length > 1
 
 /**
  * What search matches for a Member: name, Site, GitHub handle, tagline, year
- * and, for Faculty, the word "Faculty" (spec §5). Lowercased with accents
+ * and, for Faculty, the Faculty label (spec §5). Lowercased with accents
  * stripped; the script normalises the query the same way, so "sofia" finds
  * "Sofía".
  */
@@ -42,7 +43,7 @@ function searchText(member: Member): string {
     `@${member.github}`,
     member.tagline ?? '',
     member.graduationYear ?? '',
-    member.faculty ? 'Faculty' : '',
+    member.faculty ? FACULTY_LABEL : '',
   ]
     .join(' ')
     .normalize('NFD')
@@ -73,7 +74,7 @@ const rows = (list: Member[]) =>
     <main class="flex-1">
       <section class="pt-12 pb-8 md:pt-16 md:pb-10">
         <h1 class="max-w-[20ch] font-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl md:text-6xl">
-          Personal sites from Houston City College CS students and faculty, past and present.
+          Personal sites from Houston City College CS students, faculty and staff, past and present.
         </h1>
         {hasMembers && <p class="mt-4 font-mono text-sm text-ink-muted">{countLine(members)}</p>}
       </section>
@@ -146,7 +147,7 @@ const rows = (list: Member[]) =>
                           <a class="name" href={member.site} target="_blank">
                             {member.name}
                           </a>
-                          {member.faculty && <span class="faculty bg-accent text-on-accent">Faculty</span>}
+                          {member.faculty && <span class="faculty bg-accent text-on-accent">{FACULTY_LABEL}</span>}
                           {standing && <span class="standing">{standing}</span>}
                           {member.tagline && <p class="tagline">{member.tagline}</p>}
                         </div>
@@ -174,7 +175,7 @@ const rows = (list: Member[]) =>
                         <a class="name" href={member.site} target="_blank">
                           {member.name}
                         </a>
-                        {member.faculty && <span class="faculty bg-accent text-on-accent">Faculty</span>}
+                        {member.faculty && <span class="faculty bg-accent text-on-accent">{FACULTY_LABEL}</span>}
                         {standing && <span class="standing">{standing}</span>}
                         {member.tagline && <p class="tagline">{member.tagline}</p>}
                       </div>
@@ -269,10 +270,11 @@ const rows = (list: Member[]) =>
     box-shadow: inset 0 -0.12em 0 var(--er-accent);
     padding-bottom: 0.06em;
   }
-  /* The Faculty band's heading is a word, not a year: smaller, so it fits the
-     13rem column. */
+  /* The Faculty band's heading is words, not a year: smaller, so it fits the
+     13rem column, and looser, because it wraps to two lines there. */
   .band-word {
     font-size: clamp(2.75rem, 6vw, 3.25rem);
+    line-height: 1;
     letter-spacing: -0.03em;
   }
   @media (min-width: 1024px) {

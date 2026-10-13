@@ -17,5 +17,5 @@ tagline: Data analyst. Plots things in R.
 # Optional. Your Standing: graduated, transferred or attended.
 # Leave it out if your Graduation Year is still in the future, or you have none.
 status: transferred
-# Optional. Only if you teach or taught a CS course at the School; otherwise leave it out.
+# Optional. Only if you're Faculty (CONTRIBUTING.md, section 1); otherwise leave it out.
 # faculty: true

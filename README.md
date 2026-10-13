@@ -1,6 +1,6 @@
 # Eagle Ring
 
-A webring for Houston City College CS students, alumni and faculty: a directory of our personal sites, plus a small widget you can put on your own site so visitors can hop to the previous, next or a random member's site.
+A webring for Houston City College CS students, alumni, faculty and staff: a directory of our personal sites, plus a small widget you can put on your own site so visitors can hop to the previous, next or a random member's site.
 
 **Live at https://jpierre-7.github.io/eagle-ring/**
 
@@ -8,7 +8,7 @@ Eagle Ring is unofficial and student-run. It isn't affiliated with Houston City 
 
 ## Join
 
-If you take, took, teach or taught CS classes at the School (graduated, still studying, transferred out or Faculty) and you have a personal site on `https://`, you can join. Joining means adding one small file to this repo through a pull request, and you can do the whole thing in the browser.
+If you take or took CS classes at the School (graduated, still studying or transferred out), or you're Faculty (you teach or taught CS there, or work or worked there with CS students, for example as a dean or an advisor), and you have a personal site on `https://`, you can join. Joining means adding one small file to this repo through a pull request, and you can do the whole thing in the browser.
 
 [**CONTRIBUTING.md**](CONTRIBUTING.md) walks through every step, lists the rules for each field, and has the Ring Widget snippets to paste into your site once you're in.
 

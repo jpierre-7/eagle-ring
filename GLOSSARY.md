@@ -1,11 +1,11 @@
 # Eagle Ring
 
-A webring for Houston City College CS students, alumni and faculty: a public directory of members' personal sites, plus an optional widget members embed to link their sites into a ring.
+A webring for Houston City College CS students, alumni, faculty and staff: a public directory of members' personal sites, plus an optional widget members embed to link their sites into a ring.
 
 ## Language
 
 **School**:
-Houston City College (hccs.edu). The institution whose CS students, alumni and faculty the ring serves.
+Houston City College (hccs.edu). The institution whose CS students, alumni, faculty and staff the ring serves.
 _Avoid_: Houston Community College, HCC, HCCS
 
 **Webring**:
@@ -21,7 +21,7 @@ A small embeddable snippet a Member can add to their own Site that links to the 
 _Avoid_: ring, nav, badge
 
 **Member**:
-A person who takes, took, teaches or taught CS coursework at the School (a School degree is not required) and whose Site is listed in the Directory.
+A person who takes or took CS coursework at the School, or who is Faculty (a School degree is not required), and whose Site is listed in the Directory.
 _Avoid_: user, entry, participant
 
 **Site**:
@@ -37,7 +37,7 @@ A Member's optional note on how they relate to the School: Graduated, Transferre
 _Avoid_: enrolment
 
 **Faculty**:
-A Member who teaches or has taught a CS course at the School, current or past, adjuncts included. Faculty may also have a Graduation Year and Standing if they studied at the School too.
+A Member who teaches or has taught a CS course at the School, or who works or worked there in a role that serves CS students, such as a dean or an advisor. Current or past, adjuncts included; teaching assistants don't count. Faculty may also have a Graduation Year and Standing if they studied at the School too.
 _Avoid_: instructor, professor, staff, badge
 
 **Maintainer**:
