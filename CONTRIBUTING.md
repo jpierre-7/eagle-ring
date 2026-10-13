@@ -1,6 +1,6 @@
 # Joining Eagle Ring
 
-Eagle Ring is a webring for Houston City College CS students, alumni and faculty. It has two parts:
+Eagle Ring is a webring for Houston City College CS students, alumni, faculty and staff. It has two parts:
 
 - the **Directory**, a public page that lists every Member's personal website, grouped by Graduation Year;
 - the **Ring Widget**, a small block of links you can add to your own site. It sends visitors to the previous, next or a random Member's site.
@@ -10,8 +10,8 @@ This guide takes you from nothing to listed. You don't need to have used git bef
 ## TL;DR (if you already know GitHub)
 
 1. Fork the repo and copy [`docs/member-example.yaml`](docs/member-example.yaml) to `src/content/members/<your-slug>.yaml`. The slug is 2 to 32 lowercase letters and digits in groups joined by single hyphens, like `kevin-tran`. It never changes after merge.
-2. Fill in `name`, `site`, `graduationYear` and `github`. `tagline` and `status` are optional. If you teach or taught CS at the School, add `faculty: true`; Faculty who never studied at the School leave out `graduationYear`. The rules are in [section 4](#4-every-field-and-its-rules).
-3. Open a PR against `main` that changes **only** that one file, and tick the three boxes in the template. Faculty also link a public School page that shows they teach CS.
+2. Fill in `name`, `site`, `graduationYear` and `github`. `tagline` and `status` are optional. If you're Faculty (you teach or taught CS at the School, or work or worked there with CS students, for example as a dean or an advisor), add `faculty: true`; Faculty who never studied at the School leave out `graduationYear`. The rules are in [section 4](#4-every-field-and-its-rules).
+3. Open a PR against `main` that changes **only** that one file, and tick the three boxes in the template. Faculty also link a public School page that shows their role.
 4. Fix anything [CI](#5-what-ci-checks) flags. The Maintainer reviews your Site and merges.
 5. Optional: add the [Ring Widget](#6-adding-the-ring-widget) to your Site.
 
@@ -23,7 +23,7 @@ A few words used below:
 - **Site**: your personal website, the thing the Directory links to.
 - **Graduation Year**: the year you graduated, expect to graduate, or left the School. Faculty who never studied at the School have none.
 - **Standing**: an optional note on how you relate to the School (graduated, transferred or attended).
-- **Faculty**: a Member who teaches or has taught a CS course at the School.
+- **Faculty**: a Member who teaches or has taught a CS course at the School, or works or worked there with CS students (for example, a dean or an advisor).
 - **Submission**: the pull request (explained below) that adds or edits your record.
 - **Maintainer**: the person who reviews and accepts Submissions. Right now that's John Pierre, [@jpierre-7](https://github.com/jpierre-7).
 - **the School**: Houston City College.
@@ -41,13 +41,13 @@ A few words used below:
 
 ## 1. Who can be a Member
 
-Anyone who takes, took, teaches or taught CS classes at Houston City College.
+Anyone who takes or took CS classes at Houston City College, plus Faculty.
 
 - You don't need a degree from the School. If you transferred to another school, you count.
 - Current students count too.
 - Nobody checks your transcript. It works on trust. The Maintainer looks at your Site before accepting it.
-- **Faculty count too.** Faculty means anyone who teaches or has taught a CS course at the School, now or in the past, adjuncts included. Teaching assistants don't count as Faculty (but if you take or took CS classes, you can still join as a student).
-  - Faculty are listed in the Directory with a yellow **Faculty** label next to their name, and use the same ring as everyone else.
+- **Faculty count too.** Faculty means anyone who teaches or has taught a CS course at the School, or who works or worked there in a role that serves CS students, such as a dean or an advisor. Now or in the past, adjuncts included. Teaching assistants don't count as Faculty (but if you take or took CS classes, you can still join as a student).
+  - Faculty are listed in the Directory with a yellow **Faculty & Staff** label next to their name, and use the same ring as everyone else.
   - The Maintainer checks Faculty before merging, using a public School page such as a course schedule or a staff listing. Link one in your PR. If the Maintainer can't confirm it, they'll ask you to remove `faculty: true` from your file.
 
 ## 2. What you need first
@@ -114,10 +114,10 @@ When you're done, click **Commit changes**, write a short message such as `Add k
 1. At the top of your fork, click **Contribute**, then **Open pull request**.
 2. Check that the PR shows exactly one new file: yours.
 3. The description box already holds three checkboxes. Tick each one by changing `[ ]` to `[x]`:
-   - I take, took, teach or taught CS coursework at the School.
+   - I take or took CS coursework at the School, or I'm Faculty.
    - This Site is mine.
    - This PR changes only my Member file.
-4. If you're Faculty, link a public School page that shows you teach CS (a course schedule or a staff listing).
+4. If you're Faculty, link a public School page that shows your role (a course schedule or a staff listing).
 5. Under *Anything the Maintainer should know?*, add a note if you like, or leave it empty.
 6. Click **Create pull request**.
 
@@ -208,10 +208,10 @@ These rules are checked by code. If this page and the code ever disagree, the co
 
 ### `faculty` (optional)
 
-- Add `faculty: true` if you teach or have taught a CS course at the School, now or in the past. Adjuncts count; teaching assistants don't.
+- Add `faculty: true` if you teach or have taught a CS course at the School, or work or worked there in a role that serves CS students (for example, a dean or an advisor). Now or in the past. Adjuncts count; teaching assistants don't.
 - The only allowed value is `true`. If you're not Faculty, leave the field out; don't write `faculty: false`.
-- The Directory shows a yellow **Faculty** label next to your name, and search for "faculty" finds you.
-- In your PR, link a public School page that shows you teach CS. The Maintainer checks it before merging (see [section 1](#1-who-can-be-a-member)).
+- The Directory shows a yellow **Faculty & Staff** label next to your name, and searching for "faculty" or "staff" finds you.
+- In your PR, link a public School page that shows your role. The Maintainer checks it before merging (see [section 1](#1-who-can-be-a-member)).
 
 ### No other fields
 

@@ -248,24 +248,27 @@ export function groupByGraduationYear(members: readonly Member[]): DirectoryGrou
     .map(([graduationYear, group]) => ({ graduationYear, members: group.sort(compareNames) }))
 }
 
-/** How a Graduation Year is shown in the Directory: the full year, or Faculty when there is none. */
+/** How Faculty are labelled in the Directory: the tag, the band heading and the count line. */
+export const FACULTY_LABEL = 'Faculty & Staff'
+
+/** How a Graduation Year is shown in the Directory: the full year, or the Faculty label when there is none. */
 export function graduationYearLabel(graduationYear: number | undefined): string {
-  return graduationYear === undefined ? 'Faculty' : String(graduationYear)
+  return graduationYear === undefined ? FACULTY_LABEL : String(graduationYear)
 }
 
 /**
  * The Directory's count line (spec §5), singular where it applies:
- * "7 Members across 4 Graduation Years and Faculty". " and Faculty" is added
- * when the Faculty group exists; with no Graduation Years at all it reads
- * "2 Members in Faculty".
+ * "7 Members across 4 Graduation Years and Faculty & Staff". " and Faculty &
+ * Staff" is added when the Faculty group exists; with no Graduation Years at
+ * all it reads "2 Members in Faculty & Staff".
  */
 export function countLine(members: readonly Member[]): string {
   const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
   const years = new Set(members.map((member) => member.graduationYear))
   const hasFaculty = years.delete(undefined)
   const count = plural(members.length, 'Member')
-  if (years.size === 0 && hasFaculty) return `${count} in Faculty`
-  return `${count} across ${plural(years.size, 'Graduation Year')}${hasFaculty ? ' and Faculty' : ''}`
+  if (years.size === 0 && hasFaculty) return `${count} in ${FACULTY_LABEL}`
+  return `${count} across ${plural(years.size, 'Graduation Year')}${hasFaculty ? ` and ${FACULTY_LABEL}` : ''}`
 }
 
 /**

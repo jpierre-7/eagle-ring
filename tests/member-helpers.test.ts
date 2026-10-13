@@ -113,7 +113,7 @@ describe('groupByGraduationYear', () => {
 describe('graduationYearLabel', () => {
   it('shows the full year, or Faculty when there is none', () => {
     expect(graduationYearLabel(2019)).toBe('2019')
-    expect(graduationYearLabel(undefined)).toBe('Faculty')
+    expect(graduationYearLabel(undefined)).toBe('Faculty & Staff')
   })
 })
 
@@ -126,11 +126,11 @@ describe('countLine', () => {
     expect(countLine([kevin])).toBe('1 Member across 1 Graduation Year')
   })
 
-  it('adds "and Faculty" when the Faculty group exists', () => {
+  it('adds "and Faculty & Staff" when the Faculty group exists', () => {
     expect(countLine([kevin, ada, zoe, bob, aaron, grace, edsger])).toBe(
-      '7 Members across 3 Graduation Years and Faculty',
+      '7 Members across 3 Graduation Years and Faculty & Staff',
     )
-    expect(countLine([kevin, grace])).toBe('2 Members across 1 Graduation Year and Faculty')
+    expect(countLine([kevin, grace])).toBe('2 Members across 1 Graduation Year and Faculty & Staff')
   })
 
   it('counts Faculty with a Graduation Year in their year, with no Faculty group', () => {
@@ -138,8 +138,8 @@ describe('countLine', () => {
   })
 
   it('names only Faculty when no Member has a Graduation Year', () => {
-    expect(countLine([grace])).toBe('1 Member in Faculty')
-    expect(countLine([grace, edsger])).toBe('2 Members in Faculty')
+    expect(countLine([grace])).toBe('1 Member in Faculty & Staff')
+    expect(countLine([grace, edsger])).toBe('2 Members in Faculty & Staff')
   })
 })
 
