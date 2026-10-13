@@ -259,7 +259,8 @@ function checkMemberFile(
       } else if (issue.path.length === 0) {
         fail(
           `\`${file}\` must be a list of \`field: value\` lines (name, site, graduationYear, github, ` +
-            'and optionally tagline and status). Compare it with the example file in CONTRIBUTING.md.',
+            'and optionally tagline, status and faculty; Faculty may leave out graduationYear). ' +
+            'Compare it with the example file in CONTRIBUTING.md.',
         )
       } else {
         fail(`\`${issue.path.join('.')}\` ${issue.message}.`)

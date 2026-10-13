@@ -10,8 +10,8 @@ This guide takes you from nothing to listed. You don't need to have used git bef
 ## TL;DR (if you already know GitHub)
 
 1. Fork the repo and copy [`docs/member-example.yaml`](docs/member-example.yaml) to `src/content/members/<your-slug>.yaml`. The slug is 2 to 32 lowercase letters and digits in groups joined by single hyphens, like `kevin-tran`. It never changes after merge.
-2. Fill in `name`, `site`, `graduationYear` and `github`. `tagline` and `status` are optional. The rules are in [section 4](#4-every-field-and-its-rules).
-3. Open a PR against `main` that changes **only** that one file, and tick the three boxes in the template.
+2. Fill in `name`, `site`, `graduationYear` and `github`. `tagline` and `status` are optional. If you teach or taught CS at the School, add `faculty: true`; Faculty who never studied at the School leave out `graduationYear`. The rules are in [section 4](#4-every-field-and-its-rules).
+3. Open a PR against `main` that changes **only** that one file, and tick the three boxes in the template. Faculty also link a public School page that shows they teach CS.
 4. Fix anything [CI](#5-what-ci-checks) flags. The Maintainer reviews your Site and merges.
 5. Optional: add the [Ring Widget](#6-adding-the-ring-widget) to your Site.
 
@@ -21,8 +21,9 @@ A few words used below:
 
 - **Member**: someone listed in the Directory.
 - **Site**: your personal website, the thing the Directory links to.
-- **Graduation Year**: the year you graduated, expect to graduate, or left the School.
+- **Graduation Year**: the year you graduated, expect to graduate, or left the School. Faculty who never studied at the School have none.
 - **Standing**: an optional note on how you relate to the School (graduated, transferred or attended).
+- **Faculty**: a Member who teaches or has taught a CS course at the School.
 - **Submission**: the pull request (explained below) that adds or edits your record.
 - **Maintainer**: the person who reviews and accepts Submissions. Right now that's John Pierre, [@jpierre-7](https://github.com/jpierre-7).
 - **the School**: Houston City College.
@@ -40,11 +41,14 @@ A few words used below:
 
 ## 1. Who can be a Member
 
-Anyone who takes or took CS classes at Houston City College.
+Anyone who takes, took, teaches or taught CS classes at Houston City College.
 
 - You don't need a degree from the School. If you transferred to another school, you count.
 - Current students count too.
 - Nobody checks your transcript. It works on trust. The Maintainer looks at your Site before accepting it.
+- **Faculty count too.** Faculty means anyone who teaches or has taught a CS course at the School, now or in the past, adjuncts included. Teaching assistants don't count as Faculty (but if you take or took CS classes, you can still join as a student).
+  - Faculty are listed in the Directory with a yellow **Faculty** label next to their name, and use the same ring as everyone else.
+  - The Maintainer checks Faculty before merging, using a public School page such as a course schedule or a staff listing. Link one in your PR. If the Maintainer can't confirm it, they'll ask you to remove `faculty: true` from your file.
 
 ## 2. What you need first
 
@@ -110,11 +114,12 @@ When you're done, click **Commit changes**, write a short message such as `Add k
 1. At the top of your fork, click **Contribute**, then **Open pull request**.
 2. Check that the PR shows exactly one new file: yours.
 3. The description box already holds three checkboxes. Tick each one by changing `[ ]` to `[x]`:
-   - I take or took CS coursework at the School.
+   - I take, took, teach or taught CS coursework at the School.
    - This Site is mine.
    - This PR changes only my Member file.
-4. Under *Anything the Maintainer should know?*, add a note if you like, or leave it empty.
-5. Click **Create pull request**.
+4. If you're Faculty, link a public School page that shows you teach CS (a course schedule or a staff listing).
+5. Under *Anything the Maintainer should know?*, add a note if you like, or leave it empty.
+6. Click **Create pull request**.
 
 ### Step 6: Wait for CI and review
 
@@ -167,12 +172,14 @@ These rules are checked by code. If this page and the code ever disagree, the co
 - No other Member can already have the same Site. Capital letters in the domain and a trailing `/` don't make it different.
 - It can't be a page on a profile or social service. That means anything on `github.com`, social sites like LinkedIn, X, Instagram or YouTube, code hosts like GitLab or Codeberg, coding-profile sites like LeetCode or Kaggle, and link-in-bio pages like Linktree. A GitHub Pages site like `yourname.github.io` is fine. The full list is in [`scripts/submission/profile-hosts.ts`](scripts/submission/profile-hosts.ts).
 
-### `graduationYear` (required)
+### `graduationYear` (required, except for Faculty)
 
 - The year you graduated, expect to graduate, or left the School (for example, the year you transferred out).
 - Still a student? Put your best guess. You can change it later.
 - A whole number from 1990 to six years after the current year.
 - Write it as a plain number, without quotes: `graduationYear: 2023`, not `graduationYear: "2023"`.
+- **Faculty who never studied at the School leave it out** (delete the whole line). They're listed in the Directory's Faculty group. Only Faculty (`faculty: true`) may leave it out.
+- Faculty who also studied at the School keep their Graduation Year, and are listed in that year's group.
 
 ### `github` (required)
 
@@ -196,11 +203,19 @@ These rules are checked by code. If this page and the code ever disagree, the co
   - `transferred`: you moved to another school.
   - `attended`: you took classes and left without graduating or transferring.
 - **Current students leave it out.** It's not allowed when your `graduationYear` is after the current year.
+- It's also not allowed when you have no `graduationYear` (Faculty who never studied at the School), because a Standing describes your time as a student there.
 - If you don't want to set it, delete the whole `status:` line.
+
+### `faculty` (optional)
+
+- Add `faculty: true` if you teach or have taught a CS course at the School, now or in the past. Adjuncts count; teaching assistants don't.
+- The only allowed value is `true`. If you're not Faculty, leave the field out; don't write `faculty: false`.
+- The Directory shows a yellow **Faculty** label next to your name, and search for "faculty" finds you.
+- In your PR, link a public School page that shows you teach CS. The Maintainer checks it before merging (see [section 1](#1-who-can-be-a-member)).
 
 ### No other fields
 
-Only the six fields above are allowed. Any other field (a typo like `Name:` or `graduation_year:` counts) fails the check with "is not a Member field". Field names are case-sensitive.
+Only the seven fields above are allowed. Any other field (a typo like `Name:` or `graduation_year:` counts) fails the check with "is not a Member field". Field names are case-sensitive.
 
 ### YAML tips
 

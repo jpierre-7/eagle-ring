@@ -2,7 +2,7 @@
 
 Eagle Ring is a webring for Houston City College CS students and alumni: a public **Directory** of Members' personal **Sites**, plus an optional **Ring Widget** Members paste into their Sites to link them into a ring.
 
-This spec is the handoff from the planning map [Eagle Ring — v1 spec](https://github.com/jpierre-7/eagle-ring/issues/1). Every decision in it is settled; the linked tickets hold the reasoning. A builder should be able to start here without reopening any of them. Terms in **bold capitals** (Member, Site, Directory, Ring Widget, Graduation Year, Standing, Submission, Maintainer, School) are defined in [`GLOSSARY.md`](../GLOSSARY.md); use them in code, docs and UI copy.
+This spec is the handoff from the planning map [Eagle Ring — v1 spec](https://github.com/jpierre-7/eagle-ring/issues/1). Every decision in it is settled; the linked tickets hold the reasoning. A builder should be able to start here without reopening any of them. Terms in **bold capitals** (Member, Site, Directory, Ring Widget, Graduation Year, Standing, Faculty, Submission, Maintainer, School) are defined in [`GLOSSARY.md`](../GLOSSARY.md); use them in code, docs and UI copy.
 
 ## Contents
 
@@ -104,11 +104,13 @@ jobs:
 
 ## 3. Member data
 
-*Sources: [Member schema, data file format, and Submission workflow](https://github.com/jpierre-7/eagle-ring/issues/3) and its Standing amendment from [Prototype: Directory page in the chosen design direction](https://github.com/jpierre-7/eagle-ring/issues/6).*
+*Sources: [Member schema, data file format, and Submission workflow](https://github.com/jpierre-7/eagle-ring/issues/3), its Standing amendment from [Prototype: Directory page in the chosen design direction](https://github.com/jpierre-7/eagle-ring/issues/6), and [Faculty Members in the Directory](https://github.com/jpierre-7/eagle-ring/issues/50).*
 
 ### Who can be a Member
 
-Anyone who takes or took CS coursework at the School. A School degree is not required, so people who transferred out count. Eligibility is on the honour system; the Maintainer glances at the Site before merging.
+Anyone who takes, took, teaches or taught CS coursework at the School. A School degree is not required, so people who transferred out count. Eligibility is on the honour system; the Maintainer glances at the Site before merging.
+
+**Faculty** are Members who teach or have taught a CS course at the School, current or past, adjuncts included; TAs don't count. Faculty is a flag (`faculty: true`), not a Standing, so one person can be both an alum and Faculty. Faculty use the same ring and Ring Widget as everyone else, with no special ring order. The Maintainer checks a public School page (a course schedule or staff listing) before merging; if they can't verify it, they ask the person to remove `faculty: true`.
 
 ### Layout
 
@@ -121,10 +123,11 @@ One YAML file per Member at `src/content/members/<slug>.yaml`, loaded as an Astr
 | *(slug)* | yes | The **filename**, not a field. Matches `^[a-z0-9]+(-[a-z0-9]+)*$`, 2 to 32 characters, chosen by the Member (usually from their name). Unique because it's a filename. **Never changes after merge**, because it appears in Ring Widget URLs. |
 | `name` | yes | Display name of the Member's choice, 1 to 60 characters. |
 | `site` | yes | Starts with `https://`; no query string or fragment; subpaths allowed. Unique across Members. GitHub Pages Sites are explicitly allowed, including project subpaths such as `https://7jpierre.github.io/jp-website/`. Profile pages are rejected by a denylist (`linkedin.com`, `github.com/<user>`, `x.com` and similar). The Maintainer judges grey areas. |
-| `graduationYear` | yes | Integer from 1990 to the current year + 6. The year the Member graduated from, expects to graduate from, or left the School. A current student's best guess, which they can update later. |
+| `graduationYear` | yes, unless `faculty: true` | Integer from 1990 to the current year + 6. The year the Member graduated from, expects to graduate from, or left the School. A current student's best guess, which they can update later. Faculty who never studied at the School leave it out; Faculty who did keep it. |
 | `github` | yes | GitHub handle. Shown in the Directory. Also decides who owns the record (see [Editing](#edit-and-remove)). |
 | `tagline` | no | Plain text, at most 80 characters. No Markdown or links. |
-| `status` | no | The Member's **Standing**: `graduated`, `transferred` or `attended`, shown as Graduated / Transferred / Attended. *Attended* means took classes and left without graduating or transferring. Not allowed when `graduationYear` is after the current year; current students leave it empty. |
+| `status` | no | The Member's **Standing**: `graduated`, `transferred` or `attended`, shown as Graduated / Transferred / Attended. *Attended* means took classes and left without graduating or transferring. Not allowed when `graduationYear` is after the current year; current students leave it empty. Not allowed when there is no `graduationYear`, since a Standing describes the Member's time as a student. |
+| `faculty` | no | `true` if the Member is **Faculty**. The only allowed value is `true`; a Member who isn't Faculty leaves the field out. |
 
 There is no join-date field. Ring order is alphabetical by slug (section 6), which needs no extra data.
 
@@ -164,7 +167,8 @@ A GitHub Actions workflow on `pull_request`:
   - The slug matches the format.
   - `site` and `github` are unique across Members.
   - `site` is not on the profile-page denylist.
-  - `status` is not set on a future `graduationYear`.
+  - `status` is not set on a future `graduationYear`, or when there is no `graduationYear`.
+  - `graduationYear` is left out only with `faculty: true`.
   - The PR changes **exactly one file under `src/content/members/` and nothing else**. The Maintainer's own PRs are exempt.
 - **Warning only:** CI fetches `site` once. If that fails, it reports a warning and the Maintainer decides (sites that block bots or start slowly would make this flaky).
 - **Ownership on edits:** if the PR edits an existing record and the PR author is not that record's `github`, CI flags the PR "needs Maintainer approval". This covers someone else editing a record and a Member who renamed their GitHub account.
@@ -181,7 +185,7 @@ A GitHub Actions workflow on `pull_request`:
 1. Who can be a Member (the rule above, in plain words).
 2. What you need first: a Site on `https://` and a GitHub account.
 3. Steps: fork, copy the example file, fill it in, open a PR.
-4. Every field and its rules, including the optional tagline and Standing.
+4. Every field and its rules, including the optional tagline, Standing and Faculty flag, and the optional Graduation Year for Faculty.
 5. What CI checks, and what a warning means.
 6. Adding the Ring Widget: snippet A as the default, snippet B as the optional styled version, with the Member's slug filled in.
 7. Editing your record or leaving.
@@ -189,11 +193,13 @@ A GitHub Actions workflow on `pull_request`:
 
 ### PR template
 
-Three required checkboxes, plus one free-text line:
+Three required checkboxes, an optional prompt for Faculty, and one free-text line:
 
-- [ ] I take or took CS coursework at the School.
+- [ ] I take, took, teach or taught CS coursework at the School.
 - [ ] This Site is mine.
 - [ ] This PR changes only my Member file.
+
+*If you're Faculty, link a public School page that shows you teach CS.*
 
 *Anything the Maintainer should know?*
 
@@ -225,9 +231,9 @@ Names the Maintainer for everything. Handing the ring over to a club later is a 
 ### Page structure (top to bottom)
 
 1. **Header:** the wordmark on the left and a *Join the ring* link on the right, pointing to `CONTRIBUTING.md` on GitHub. "Join the ring" is the page's only call to action; use the same words everywhere.
-2. **Headline:** *"Personal sites from Houston City College CS students, past and present."* Below it, a count line in mono: *"N Members across M Graduation Years"*, singular where it applies.
+2. **Headline:** *"Personal sites from Houston City College CS students and faculty, past and present."* Below it, a count line in mono: *"N Members across M Graduation Years"*, singular where it applies, plus *" and Faculty"* when the Faculty group exists (*"7 Members across 4 Graduation Years and Faculty"*). With Faculty only and no Graduation Years, it reads *"N Members in Faculty"*.
 3. **Controls:**
-   - a labelled search field (label: *Search Members*) that matches name, Site, GitHub handle, tagline and year;
+   - a labelled search field (label: *Search Members*) that matches name, Site, GitHub handle, tagline and year, and "faculty" for every Faculty Member;
    - a *By year* / *A-Z* segmented toggle;
    - a yellow **Random Site** button with a Phosphor shuffle icon, linking to `/eagle-ring/ring/random`.
 4. **The roster.**
@@ -236,13 +242,14 @@ Names the Maintainer for everything. Handing the ring over to a club later is a 
 ### The roster: "roster in year bands"
 
 - **By year (the default):** one band per Graduation Year, newest first. Each band has the **full four-digit year** (`2019`, not `19`) as one large numeral on the left, stacked above the rows on mobile. Beside it is a list of **full-width Member rows**, sorted by name and separated by hairlines. No cards.
+  - Faculty with no Graduation Year come first, in a band headed **Faculty**, sorted by name the same way. Faculty who have a Graduation Year stay in their year band.
 - **Each row**, left to right:
-  - the name, which links to the Site, with the Standing (if set) in mono next to it and the tagline (if set) underneath;
+  - the name, which links to the Site, with the **Faculty** label (for Faculty) and the Standing (if set) in mono next to it, and the tagline (if set) underneath. The Faculty label comes before the Standing and is a filled yellow tag with near-black text (`bg-accent` / `text-on-accent`, 11.6:1 in both modes), so it stands out more than the plain-text Standing;
   - the Site domain, in mono;
   - `@github` in mono, linking to the GitHub profile.
 
   The whole row is clickable to the Site. The GitHub link sits above that layer and stays separately clickable.
-- **A-Z:** the bands go away. One roster sorted by name, with the full Graduation Year at the start of each row.
+- **A-Z:** the bands go away. One roster sorted by name, with the full Graduation Year at the start of each row, or **Faculty** for Faculty with no Graduation Year.
 - **Search with no results:** *No Members match "…"* and a *Clear search* button.
 
 ### Small rings
