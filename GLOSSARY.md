@@ -21,7 +21,7 @@ A small embeddable snippet a Member can add to their own Site that links to the 
 _Avoid_: ring, nav, badge
 
 **Member**:
-A person who takes or took CS coursework at the School (a School degree is not required) and whose Site is listed in the Directory.
+A person who takes, took, teaches or taught CS coursework at the School (a School degree is not required) and whose Site is listed in the Directory.
 _Avoid_: user, entry, participant
 
 **Site**:
@@ -29,12 +29,16 @@ A Member's personal website, the thing the Directory links to.
 _Avoid_: portfolio, homepage, link
 
 **Graduation Year**:
-The year a Member graduated from, expects to graduate from, or left the School (for example, the year they transferred out); the Directory's grouping key. A current student's best guess, which they may update later.
+The year a Member graduated from, expects to graduate from, or left the School (for example, the year they transferred out); the Directory's grouping key. A current student's best guess, which they may update later. Faculty who never studied at the School have none.
 _Avoid_: class, cohort, year
 
 **Standing**:
 A Member's optional note on how they relate to the School: Graduated, Transferred (moved to another school), or Attended (took classes and left without graduating or transferring). Current students have none; their Graduation Year is in the future.
 _Avoid_: enrolment
+
+**Faculty**:
+A Member who teaches or has taught a CS course at the School, current or past, adjuncts included. Faculty may also have a Graduation Year and Standing if they studied at the School too.
+_Avoid_: instructor, professor, staff, badge
 
 **Maintainer**:
 The person who reviews and merges Member submissions. A single person for now.
