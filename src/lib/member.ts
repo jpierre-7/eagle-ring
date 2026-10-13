@@ -123,10 +123,11 @@ export function createMemberSchema({ currentYear = new Date().getFullYear() }: M
             if (problem) ctx.addIssue({ code: 'custom', message: problem })
           }),
         graduationYear: z
-          .number({ error: `is required, as a year from ${yearRange}` })
+          .number({ error: `must be a year from ${yearRange}, written as a plain number` })
           .int(`must be a whole year from ${yearRange}`)
           .min(MIN_GRADUATION_YEAR, `must be from ${yearRange}`)
-          .max(maxYear, `must be from ${yearRange}`),
+          .max(maxYear, `must be from ${yearRange}`)
+          .optional(),
         github: z
           .string({ error: 'is required, as your GitHub handle' })
           .refine((handle) => !handle.startsWith('@'), 'is the handle without the leading "@"')
@@ -147,18 +148,52 @@ export function createMemberSchema({ currentYear = new Date().getFullYear() }: M
         status: z
           .enum(STANDINGS, { error: `must be one of ${STANDINGS.join(', ')}` })
           .optional(),
+        faculty: z
+          .literal(true, { error: 'must be true if you are Faculty; otherwise leave the field out' })
+          .optional(),
       },
       { error: (issue) => (issue.code === 'unrecognized_keys' ? 'is not a Member field' : undefined) },
     )
-    .superRefine((member, ctx) => {
-      if (member.status !== undefined && member.graduationYear > currentYear) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['status'],
-          message: `must be left out while graduationYear (${member.graduationYear}) is after ${currentYear}; current students have no Standing`,
-        })
-      }
-    })
+    .superRefine(
+      (member, ctx) => {
+        // Runs even when a field failed (see `when` below), so a field here
+        // may still hold its raw value. Each rule only uses fields that are
+        // valid, so a bad field gets its own error and no knock-on ones.
+        const { graduationYear: year, status, faculty } = member
+        const validYear =
+          typeof year === 'number' && Number.isInteger(year) && year >= MIN_GRADUATION_YEAR && year <= maxYear
+            ? year
+            : undefined
+        const validStanding = (STANDINGS as readonly unknown[]).includes(status)
+        if (year === undefined && faculty === undefined) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['graduationYear'],
+            message: `is required, as a year from ${yearRange}; only Faculty (faculty: true) may leave it out`,
+          })
+        }
+        if (validStanding && year === undefined) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['status'],
+            message:
+              'must be left out when there is no graduationYear; a Standing describes your time as a student ' +
+              'at the School, so it needs the year you graduated or left',
+          })
+        }
+        if (validStanding && validYear !== undefined && validYear > currentYear) {
+          ctx.addIssue({
+            code: 'custom',
+            path: ['status'],
+            message: `must be left out while graduationYear (${validYear}) is after ${currentYear}; current students have no Standing`,
+          })
+        }
+      },
+      // Zod skips a refinement once a field has failed outright (a missing
+      // name, say). Run it for any set of fields, so a missing graduationYear
+      // is reported alongside the other problems.
+      { when: ({ value }) => typeof value === 'object' && value !== null && !Array.isArray(value) },
+    )
 }
 
 /** The fields of one Member file, after validation. */
@@ -167,9 +202,12 @@ export type MemberData = z.infer<ReturnType<typeof createMemberSchema>>
 /** A Member: the file's fields plus its slug. */
 export type Member = MemberData & { slug: string }
 
-/** One Graduation Year and its Members. */
-export interface GraduationYearGroup {
-  graduationYear: number
+/**
+ * One group in the Directory: a Graduation Year and its Members, or, with no
+ * `graduationYear`, the Faculty group of Faculty who have no Graduation Year.
+ */
+export interface DirectoryGroup {
+  graduationYear?: number
   members: Member[]
 }
 
@@ -195,18 +233,39 @@ export function sortByName(members: readonly Member[]): Member[] {
 
 /**
  * Members grouped by Graduation Year, newest year first, names sorted within
- * each year. Only years that have Members appear.
+ * each group. Faculty with no Graduation Year come first, in the Faculty group;
+ * Faculty who have one stay in its year. Only groups that have Members appear.
  */
-export function groupByGraduationYear(members: readonly Member[]): GraduationYearGroup[] {
-  const byYear = new Map<number, Member[]>()
+export function groupByGraduationYear(members: readonly Member[]): DirectoryGroup[] {
+  const byYear = new Map<number | undefined, Member[]>()
   for (const member of members) {
     const group = byYear.get(member.graduationYear)
     if (group) group.push(member)
     else byYear.set(member.graduationYear, [member])
   }
   return [...byYear.entries()]
-    .sort(([a], [b]) => b - a)
+    .sort(([a], [b]) => (a === undefined ? -1 : b === undefined ? 1 : b - a))
     .map(([graduationYear, group]) => ({ graduationYear, members: group.sort(compareNames) }))
+}
+
+/** How a Graduation Year is shown in the Directory: the full year, or Faculty when there is none. */
+export function graduationYearLabel(graduationYear: number | undefined): string {
+  return graduationYear === undefined ? 'Faculty' : String(graduationYear)
+}
+
+/**
+ * The Directory's count line (spec §5), singular where it applies:
+ * "7 Members across 4 Graduation Years and Faculty". " and Faculty" is added
+ * when the Faculty group exists; with no Graduation Years at all it reads
+ * "2 Members in Faculty".
+ */
+export function countLine(members: readonly Member[]): string {
+  const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
+  const years = new Set(members.map((member) => member.graduationYear))
+  const hasFaculty = years.delete(undefined)
+  const count = plural(members.length, 'Member')
+  if (years.size === 0 && hasFaculty) return `${count} in Faculty`
+  return `${count} across ${plural(years.size, 'Graduation Year')}${hasFaculty ? ' and Faculty' : ''}`
 }
 
 /**

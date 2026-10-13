@@ -7,12 +7,15 @@
 name: Kevin Tran
 # Required. Your Site. Starts with https://, with no ? or # part.
 site: https://kevintran.github.io/
-# Required. The year you graduated, expect to graduate, or left. No quotes.
+# Required, except for Faculty who never studied at the School. The year you
+# graduated, expect to graduate, or left. No quotes.
 graduationYear: 2023
 # Required. Your GitHub handle, without the @.
 github: kvtran
 # Optional. One line of plain text, at most 80 characters. No links.
 tagline: Data analyst. Plots things in R.
 # Optional. Your Standing: graduated, transferred or attended.
-# Leave it out if your Graduation Year is still in the future.
+# Leave it out if your Graduation Year is still in the future, or you have none.
 status: transferred
+# Optional. Only if you teach or taught a CS course at the School; otherwise leave it out.
+# faculty: true

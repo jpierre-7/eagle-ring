@@ -12,6 +12,8 @@ import Icon from '../components/Icon.astro'
 import { url } from '../lib/url'
 import {
   members,
+  countLine,
+  graduationYearLabel,
   groupByGraduationYear,
   sortByName,
   siteDomain,
@@ -27,21 +29,30 @@ const alphabetical = sortByName(members)
 const hasMembers = members.length > 0
 const hasControls = members.length > 1
 
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
-const countLine = `${plural(members.length, 'Member')} across ${plural(bands.length, 'Graduation Year')}`
-
 /**
- * What search matches for a Member: name, Site, GitHub handle, tagline and
- * year (spec §5). Lowercased with accents stripped; the script normalises the
- * query the same way, so "sofia" finds "Sofía".
+ * What search matches for a Member: name, Site, GitHub handle, tagline, year
+ * and, for Faculty, the word "Faculty" (spec §5). Lowercased with accents
+ * stripped; the script normalises the query the same way, so "sofia" finds
+ * "Sofía".
  */
 function searchText(member: Member): string {
-  return [member.name, siteDomain(member.site), `@${member.github}`, member.tagline ?? '', member.graduationYear]
+  return [
+    member.name,
+    siteDomain(member.site),
+    `@${member.github}`,
+    member.tagline ?? '',
+    member.graduationYear ?? '',
+    member.faculty ? 'Faculty' : '',
+  ]
     .join(' ')
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
     .toLowerCase()
 }
+
+/** The id of a band's heading: `year-2019`, or `faculty` for the Faculty band. */
+const bandId = (graduationYear: number | undefined) =>
+  graduationYear === undefined ? 'faculty' : `year-${graduationYear}`
 
 const rows = (list: Member[]) =>
   list.map((member) => ({
@@ -62,9 +73,9 @@ const rows = (list: Member[]) =>
     <main class="flex-1">
       <section class="pt-12 pb-8 md:pt-16 md:pb-10">
         <h1 class="max-w-[20ch] font-display text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl md:text-6xl">
-          Personal sites from Houston City College CS students, past and present.
+          Personal sites from Houston City College CS students and faculty, past and present.
         </h1>
-        {hasMembers && <p class="mt-4 font-mono text-sm text-ink-muted">{countLine}</p>}
+        {hasMembers && <p class="mt-4 font-mono text-sm text-ink-muted">{countLine(members)}</p>}
       </section>
 
       {
@@ -121,10 +132,12 @@ const rows = (list: Member[]) =>
 
             <div data-view="year">
               {bands.map(({ graduationYear, members: bandMembers }) => (
-                <section class="band" aria-labelledby={`year-${graduationYear}`} data-band>
-                  <h2 id={`year-${graduationYear}`} class="band-year">
-                    <span class="sr-only">Graduation Year </span>
-                    <span class="band-num">{graduationYear}</span>
+                <section class="band" aria-labelledby={bandId(graduationYear)} data-band>
+                  <h2 id={bandId(graduationYear)} class="band-year">
+                    {graduationYear !== undefined && <span class="sr-only">Graduation Year </span>}
+                    <span class={graduationYear === undefined ? 'band-num band-word' : 'band-num'}>
+                      {graduationYearLabel(graduationYear)}
+                    </span>
                   </h2>
                   <ul class="roster" role="list">
                     {rows(bandMembers).map(({ member, domain, standing, search }) => (
@@ -133,6 +146,7 @@ const rows = (list: Member[]) =>
                           <a class="name" href={member.site} target="_blank">
                             {member.name}
                           </a>
+                          {member.faculty && <span class="faculty bg-accent text-on-accent">Faculty</span>}
                           {standing && <span class="standing">{standing}</span>}
                           {member.tagline && <p class="tagline">{member.tagline}</p>}
                         </div>
@@ -152,14 +166,15 @@ const rows = (list: Member[]) =>
                 <ul class="roster az" role="list" aria-label="Members, A-Z">
                   {rows(alphabetical).map(({ member, domain, standing, search }) => (
                     <li class="row" data-member data-search={search}>
-                      <span class="row-year">
-                        <span class="sr-only">Graduation Year </span>
-                        {member.graduationYear}
+                      <span class={member.graduationYear === undefined ? 'row-year row-word' : 'row-year'}>
+                        {member.graduationYear !== undefined && <span class="sr-only">Graduation Year </span>}
+                        {graduationYearLabel(member.graduationYear)}
                       </span>
                       <div class="who">
                         <a class="name" href={member.site} target="_blank">
                           {member.name}
                         </a>
+                        {member.faculty && <span class="faculty bg-accent text-on-accent">Faculty</span>}
                         {standing && <span class="standing">{standing}</span>}
                         {member.tagline && <p class="tagline">{member.tagline}</p>}
                       </div>
@@ -254,6 +269,12 @@ const rows = (list: Member[]) =>
     box-shadow: inset 0 -0.12em 0 var(--er-accent);
     padding-bottom: 0.06em;
   }
+  /* The Faculty band's heading is a word, not a year: smaller, so it fits the
+     13rem column. */
+  .band-word {
+    font-size: clamp(2.75rem, 6vw, 3.25rem);
+    letter-spacing: -0.03em;
+  }
   @media (min-width: 1024px) {
     .band-year {
       position: sticky;
@@ -313,6 +334,17 @@ const rows = (list: Member[]) =>
     outline-offset: -3px;
     box-shadow: inset 0 0 0 6px var(--er-ink);
   }
+  /* The Faculty label: a filled yellow tag before any Standing, so it stands
+     out more than the plain-text Standing. Near-black on yellow in both
+     modes, 11.6:1. */
+  .faculty {
+    margin-left: 0.5rem;
+    padding: 0.125rem 0.375rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+  }
   .standing {
     margin-left: 0.5rem;
     font-family: var(--font-mono);
@@ -362,6 +394,12 @@ const rows = (list: Member[]) =>
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
   }
+  /* Faculty with no Graduation Year: the word, sized to fit the year column. */
+  .az .row-word {
+    font-size: 1.125rem;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
   @media (min-width: 768px) {
     .az .row {
       grid-template-columns: 7rem minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 12rem);
@@ -373,6 +411,9 @@ const rows = (list: Member[]) =>
     .az .row-year {
       grid-row: auto;
       font-size: 2.25rem;
+    }
+    .az .row-word {
+      font-size: 1.5rem;
     }
   }
 

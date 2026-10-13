@@ -1,0 +1,6 @@
+# expect-field: status
+name: "Grace Hopper"
+site: "https://hopper.dev/"
+github: "ghopper"
+status: "graduated"
+faculty: true

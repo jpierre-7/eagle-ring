@@ -104,6 +104,70 @@ describe('Standing', () => {
   })
 })
 
+describe('Faculty', () => {
+  const member = { name: 'A', site: 'https://a.dev', github: 'a' }
+  const issues = (data: unknown) =>
+    schema.safeParse(data).error?.issues.map((issue) => [issue.path.join('.'), issue.message])
+
+  it('may leave out Graduation Year', () => {
+    expect(issues({ ...member, faculty: true })).toBeUndefined()
+  })
+
+  it('may keep a Graduation Year and Standing', () => {
+    expect(issues({ ...member, faculty: true, graduationYear: 2012, status: 'graduated' })).toBeUndefined()
+  })
+
+  it('is only ever true; "not Faculty" leaves the field out', () => {
+    expect(issues({ ...member, graduationYear: 2023, faculty: false })).toEqual([
+      ['faculty', 'must be true if you are Faculty; otherwise leave the field out'],
+    ])
+  })
+
+  it('is the only way to leave out Graduation Year', () => {
+    expect(issues(member)).toEqual([
+      ['graduationYear', 'is required, as a year from 1990 to 2032; only Faculty (faculty: true) may leave it out'],
+    ])
+  })
+
+  it('says why Standing needs a Graduation Year', () => {
+    expect(issues({ ...member, faculty: true, status: 'attended' })).toEqual([
+      [
+        'status',
+        'must be left out when there is no graduationYear; a Standing describes your time as a student at the School, so it needs the year you graduated or left',
+      ],
+    ])
+  })
+
+  it('names only the faculty problem when faculty has the wrong value', () => {
+    expect(issues({ ...member, faculty: 'true' })).toEqual([
+      ['faculty', 'must be true if you are Faculty; otherwise leave the field out'],
+    ])
+  })
+
+  it('names only the Standing problem when status is not a Standing', () => {
+    expect(issues({ ...member, faculty: true, status: 'bogus' })).toEqual([
+      ['status', 'must be one of graduated, transferred, attended'],
+    ])
+  })
+
+  it('does not judge Standing against a Graduation Year that is itself invalid', () => {
+    expect(issues({ ...member, graduationYear: 2040, status: 'graduated' })).toEqual([
+      ['graduationYear', 'must be from 1990 to 2032'],
+    ])
+  })
+
+  it('adds no field problems to a file that is a list, not fields', () => {
+    expect(issues([member])?.map(([path]) => path)).toEqual([''])
+  })
+
+  it('reports a missing Graduation Year alongside other problems', () => {
+    expect(issues({ site: 'https://a.dev', github: 'a' })).toEqual([
+      ['name', 'is required, as text'],
+      ['graduationYear', 'is required, as a year from 1990 to 2032; only Faculty (faculty: true) may leave it out'],
+    ])
+  })
+})
+
 describe('slug (the filename)', () => {
   it.each(['kevin-tran', 'jo', 'a1', 'mary-jane-watson', 'x'.repeat(32), '2024-grad'])('accepts %s', (slug) => {
     expect(isValidSlug(slug)).toBe(true)

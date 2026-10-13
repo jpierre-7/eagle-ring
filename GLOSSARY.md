@@ -1,11 +1,11 @@
 # Eagle Ring
 
-A webring for Houston City College CS students and alumni: a public directory of members' personal sites, plus an optional widget members embed to link their sites into a ring.
+A webring for Houston City College CS students, alumni and faculty: a public directory of members' personal sites, plus an optional widget members embed to link their sites into a ring.
 
 ## Language
 
 **School**:
-Houston City College (hccs.edu). The institution whose students and alumni the ring serves.
+Houston City College (hccs.edu). The institution whose CS students, alumni and faculty the ring serves.
 _Avoid_: Houston Community College, HCC, HCCS
 
 **Webring**:
