@@ -1,6 +1,6 @@
 # Eagle Ring v1 spec
 
-Eagle Ring is a webring for Houston City College CS students and alumni: a public **Directory** of Members' personal **Sites**, plus an optional **Ring Widget** Members paste into their Sites to link them into a ring.
+Eagle Ring is a webring for Houston City College CS students, alumni and faculty: a public **Directory** of Members' personal **Sites**, plus an optional **Ring Widget** Members paste into their Sites to link them into a ring.
 
 This spec is the handoff from the planning map [Eagle Ring — v1 spec](https://github.com/jpierre-7/eagle-ring/issues/1). Every decision in it is settled; the linked tickets hold the reasoning. A builder should be able to start here without reopening any of them. Terms in **bold capitals** (Member, Site, Directory, Ring Widget, Graduation Year, Standing, Faculty, Submission, Maintainer, School) are defined in [`GLOSSARY.md`](../GLOSSARY.md); use them in code, docs and UI copy.
 

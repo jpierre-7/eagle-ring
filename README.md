@@ -1,6 +1,6 @@
 # Eagle Ring
 
-A webring for Houston City College CS students and alumni: a directory of our personal sites, plus a small widget you can put on your own site so visitors can hop to the previous, next or a random member's site.
+A webring for Houston City College CS students, alumni and faculty: a directory of our personal sites, plus a small widget you can put on your own site so visitors can hop to the previous, next or a random member's site.
 
 **Live at https://jpierre-7.github.io/eagle-ring/**
 

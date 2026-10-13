@@ -1,6 +1,6 @@
 # Joining Eagle Ring
 
-Eagle Ring is a webring for Houston City College CS students and alumni. It has two parts:
+Eagle Ring is a webring for Houston City College CS students, alumni and faculty. It has two parts:
 
 - the **Directory**, a public page that lists every Member's personal website, grouped by Graduation Year;
 - the **Ring Widget**, a small block of links you can add to your own site. It sends visitors to the previous, next or a random Member's site.
