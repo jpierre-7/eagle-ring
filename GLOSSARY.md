@@ -28,6 +28,10 @@ _Avoid_: user, entry, participant
 A Member's personal website, the thing the Directory links to.
 _Avoid_: portfolio, homepage, link
 
+**Screenshot**:
+An optional 16:9 picture of a Member's Site, shown when their row in the Directory is hovered. One per Member, named after their slug.
+_Avoid_: thumbnail, preview image, snapshot
+
 **Graduation Year**:
 The year a Member graduated from, expects to graduate from, or left the School (for example, the year they transferred out); the Directory's grouping key. A current student's best guess, which they may update later. Faculty who never studied at the School have none.
 _Avoid_: class, cohort, year

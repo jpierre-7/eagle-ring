@@ -11,6 +11,15 @@
  */
 import yaml from 'js-yaml'
 import { createMemberSchema, MEMBERS_DIR, slugFromEntry } from '../../src/lib/member.ts'
+import {
+  EXTENSION_FORMAT,
+  imageInfo,
+  parseScreenshotEntry,
+  SCREENSHOT_MAX_BYTES,
+  SCREENSHOTS_DIR,
+  screenshotNameProblem,
+  screenshotSizeProblem,
+} from '../../src/lib/screenshot.ts'
 import { PROFILE_HOSTS } from './profile-hosts.ts'
 
 /** Used when there is no CODEOWNERS file, or it names nobody. */
@@ -35,6 +44,12 @@ export interface MemberFileText {
   text: string
 }
 
+/** A screenshot's path and raw bytes. */
+export interface ScreenshotFile {
+  path: string
+  bytes: Uint8Array
+}
+
 /** What happened when CI fetched a Site: `ok`, or why it failed. */
 export type SiteProbe = { ok: true } | { ok: false; reason: string }
 
@@ -49,6 +64,8 @@ export interface SubmissionInput {
   headMembers: readonly MemberFileText[]
   /** Member files before the PR, at least the ones the PR edits or deletes. */
   baseMembers: readonly MemberFileText[]
+  /** Every screenshot after the PR. Leave out when there are none. */
+  headScreenshots?: readonly ScreenshotFile[]
   /** Fetches a Site once. Leave out to skip the reachability warning. */
   probeSite?: (site: string) => Promise<SiteProbe>
   /** The year the schema treats as now. Defaults to the real year. */
@@ -66,6 +83,8 @@ export interface SubmissionReport {
   byMaintainer: boolean
   /** Member files the PR adds, edits or deletes. */
   memberChanges: ChangedFile[]
+  /** Screenshots the PR adds, edits or deletes. */
+  screenshotChanges: ChangedFile[]
   /** Blocking: the PR can't merge until these are fixed. */
   errors: Finding[]
   /** Not blocking: the Maintainer takes a look. */
@@ -133,6 +152,22 @@ function memberEntry(path: string): string | undefined {
   return path.startsWith(prefix) ? path.slice(prefix.length) : undefined
 }
 
+/** The part of a path under `src/content/screenshots/`, or `undefined`. */
+function screenshotEntry(path: string): string | undefined {
+  const prefix = `${SCREENSHOTS_DIR}/`
+  return path.startsWith(prefix) ? path.slice(prefix.length) : undefined
+}
+
+/** The slug a Member file or screenshot path belongs to, from its filename. */
+function recordSlug(path: string): string {
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  const dot = name.lastIndexOf('.')
+  return dot === -1 ? name : name.slice(0, dot)
+}
+
+/** The Member file path for a slug. */
+const memberPath = (slug: string) => `${MEMBERS_DIR}/${slug}.yaml`
+
 /** Folders that hold CI and the checks themselves. A Submission never touches them. */
 export const CI_DIRS = ['scripts', '.github'] as const
 
@@ -171,14 +206,23 @@ function recordOwner(text: string | undefined): string | undefined {
 // The checks
 // ---------------------------------------------------------------------------
 
-/** Blocking: exactly one Member file and nothing else, unless by the Maintainer. */
-function checkScope(memberChanges: ChangedFile[], otherChanges: ChangedFile[]): Finding[] {
+/**
+ * Blocking: one Member's record and nothing else, unless by the Maintainer.
+ * The record is one Member file, plus that Member's screenshot if they add,
+ * replace or delete one; a screenshot can also change on its own.
+ */
+function checkScope(
+  memberChanges: ChangedFile[],
+  screenshotChanges: ChangedFile[],
+  otherChanges: ChangedFile[],
+): Finding[] {
   const findings: Finding[] = []
-  if (memberChanges.length === 0) {
+  if (memberChanges.length === 0 && screenshotChanges.length === 0) {
     findings.push({
       message:
         `This PR doesn't add, edit or delete a Member file. A Submission changes exactly one file in \`${MEMBERS_DIR}/\`: ` +
-        'your own `<your-slug>.yaml`. If this PR is not a Submission, the Maintainer will review it by hand.',
+        `your own \`<your-slug>.yaml\`, plus your screenshot in \`${SCREENSHOTS_DIR}/\` if you have one. ` +
+        'If this PR is not a Submission, the Maintainer will review it by hand.',
     })
   }
   if (memberChanges.length > 1) {
@@ -187,6 +231,15 @@ function checkScope(memberChanges: ChangedFile[], otherChanges: ChangedFile[]): 
         `This PR changes ${memberChanges.length} Member files: ${listFiles(memberChanges.map((c) => c.path))}. ` +
         'A Submission changes only one Member file, your own. Keep your file and take the others out of this PR. ' +
         'If you renamed your file, rename it back: the slug (the filename) never changes after it is merged.',
+    })
+  }
+  const slugs = new Set([...memberChanges, ...screenshotChanges].map((c) => recordSlug(c.path)))
+  if (memberChanges.length <= 1 && slugs.size > 1) {
+    findings.push({
+      message:
+        `This PR changes the records of ${slugs.size} Members: ${listFiles([...memberChanges, ...screenshotChanges].map((c) => c.path))}. ` +
+        'A Submission changes only your own record: your Member file and your screenshot, both named after your slug. ' +
+        'Take the other files out of this PR.',
     })
   }
   const ciChanges = otherChanges.filter((c) => isCiPath(c.path))
@@ -202,8 +255,9 @@ function checkScope(memberChanges: ChangedFile[], otherChanges: ChangedFile[]): 
   if (restChanges.length > 0) {
     findings.push({
       message:
-        `This PR also changes files outside \`${MEMBERS_DIR}/\`: ${listFiles(restChanges.map((c) => c.path))}. ` +
-        'A Submission changes only your Member file. Undo those changes, or open a separate PR for them.',
+        `This PR also changes files outside \`${MEMBERS_DIR}/\` and \`${SCREENSHOTS_DIR}/\`: ` +
+        `${listFiles(restChanges.map((c) => c.path))}. ` +
+        'A Submission changes only your Member file and your screenshot. Undo those changes, or open a separate PR for them.',
     })
   }
   return findings
@@ -321,13 +375,105 @@ function checkMemberFile(
   return siteUsable ? site : undefined
 }
 
-/** Needs approval: an edit or deletion of a record the author doesn't own. */
+/**
+ * Blocking checks on one added or replaced screenshot: its filename, that it
+ * belongs to a Member, its real file type, its file size and its pixel size.
+ */
+function checkScreenshotFile(change: ChangedFile, input: SubmissionInput, errors: Finding[]): void {
+  const file = change.path
+  const fail = (message: string) => errors.push({ file, message })
+  const rules = `a 16:9 WebP, PNG or JPEG from 1280×720 to 1920×1080 pixels, at most ${SCREENSHOT_MAX_BYTES / 1024} KB`
+
+  const entry = screenshotEntry(file)!
+  const nameProblem = screenshotNameProblem(entry)
+  if (nameProblem) {
+    fail(
+      `The screenshot's filename is wrong: it ${nameProblem}. Name it after your slug, ` +
+        `for example \`${SCREENSHOTS_DIR}/kevin-tran.webp\`.`,
+    )
+    return
+  }
+  const { slug, ext } = parseScreenshotEntry(entry)
+
+  if (!input.headMembers.some((m) => m.path === memberPath(slug))) {
+    fail(
+      `There is no Member file \`${memberPath(slug)}\` for this screenshot. ` +
+        'A screenshot is named after the slug of the Member file it goes with.',
+    )
+  }
+
+  const bytes = input.headScreenshots?.find((s) => s.path === file)?.bytes
+  if (bytes === undefined) {
+    fail(`CI couldn't read \`${file}\`.`)
+    return
+  }
+  if (bytes.length > SCREENSHOT_MAX_BYTES) {
+    fail(
+      `The screenshot is ${Math.ceil(bytes.length / 1024)} KB; the most allowed is ${SCREENSHOT_MAX_BYTES / 1024} KB. ` +
+        'Save it as WebP, or at 1280×720, to make it smaller.',
+    )
+  }
+  const info = imageInfo(bytes)
+  if (!info) {
+    fail(`The screenshot isn't a picture CI can read. It must be ${rules}.`)
+    return
+  }
+  if (info.format !== EXTENSION_FORMAT[ext]) {
+    fail(
+      `The screenshot is named \`.${ext}\` but is really a ${info.format.toUpperCase()} file. ` +
+        'Rename it to match, or save it again in the right format.',
+    )
+  }
+  const sizeProblem = screenshotSizeProblem(info.width, info.height)
+  if (sizeProblem) fail(`The screenshot ${sizeProblem}. It must be ${rules}.`)
+}
+
+/**
+ * Blocking: a Member file the PR touches must not end up with a screenshot
+ * that has no Member file (deleting a record deletes its screenshot too), and
+ * a Member has one screenshot at most.
+ */
+function checkScreenshotPairs(slugs: Set<string>, input: SubmissionInput, errors: Finding[]): void {
+  const shots = (input.headScreenshots ?? []).filter((s) => {
+    const entry = screenshotEntry(s.path)
+    return entry !== undefined && screenshotNameProblem(entry) === undefined
+  })
+  for (const slug of slugs) {
+    const own = shots.filter((s) => recordSlug(s.path) === slug).map((s) => s.path)
+    const hasMember = input.headMembers.some((m) => m.path === memberPath(slug))
+    if (own.length > 0 && !hasMember && !errors.some((e) => own.includes(e.file ?? ''))) {
+      errors.push({
+        file: own[0],
+        message:
+          `\`${memberPath(slug)}\` is gone but its screenshot is still here. ` +
+          'When you delete a Member file, delete its screenshot in the same PR.',
+      })
+    }
+    if (own.length > 1) {
+      errors.push({
+        file: own[0],
+        message:
+          `There are ${own.length} screenshots for \`${slug}\`: ${listFiles(own)}. ` +
+          'A Member has one screenshot at most. Keep one and delete the others.',
+      })
+    }
+  }
+}
+
+/**
+ * Needs approval: an edit or deletion of a record the author doesn't own.
+ * `change` is a Member file, or a screenshot, whose owner is in the Member
+ * file of the same slug.
+ */
 function checkOwnership(change: ChangedFile, input: SubmissionInput): Finding | undefined {
-  const before = input.baseMembers.find((m) => m.path === change.path)?.text
+  const isShot = screenshotEntry(change.path) !== undefined
+  const recordPath = isShot ? memberPath(recordSlug(change.path)) : change.path
+  const before = input.baseMembers.find((m) => m.path === recordPath)?.text
   const owner = recordOwner(before)
   if (owner && sameHandle(owner, input.author)) return undefined
-  const verb = change.status === 'deleted' ? 'deletes' : 'edits'
-  const whose = owner ? `a record that belongs to @${owner}` : 'a record whose owner CI could not read'
+  const verb = change.status === 'deleted' ? 'deletes' : change.status === 'added' ? 'adds' : 'edits'
+  const what = isShot ? 'the screenshot of a record' : 'a record'
+  const whose = owner ? `${what} that belongs to @${owner}` : `${what} whose owner CI could not read`
   return {
     file: change.path,
     message:
@@ -341,13 +487,16 @@ export async function checkSubmission(input: SubmissionInput): Promise<Submissio
   const schema = createMemberSchema({ currentYear: input.currentYear })
   const byMaintainer = input.maintainers.some((m) => sameHandle(m, input.author))
   const memberChanges = input.changedFiles.filter((c) => memberEntry(c.path) !== undefined)
-  const otherChanges = input.changedFiles.filter((c) => memberEntry(c.path) === undefined)
+  const screenshotChanges = input.changedFiles.filter((c) => screenshotEntry(c.path) !== undefined)
+  const otherChanges = input.changedFiles.filter(
+    (c) => memberEntry(c.path) === undefined && screenshotEntry(c.path) === undefined,
+  )
 
   const errors: Finding[] = []
   const warnings: Finding[] = []
   const needsApproval: Finding[] = []
 
-  if (!byMaintainer) errors.push(...checkScope(memberChanges, otherChanges))
+  if (!byMaintainer) errors.push(...checkScope(memberChanges, screenshotChanges, otherChanges))
 
   const sitesToFetch: Array<{ file: string; site: string }> = []
   for (const change of memberChanges) {
@@ -360,6 +509,25 @@ export async function checkSubmission(input: SubmissionInput): Promise<Submissio
       if (flag) needsApproval.push(flag)
     }
   }
+
+  for (const change of screenshotChanges) {
+    if (change.status !== 'deleted') checkScreenshotFile(change, input, errors)
+    // A screenshot that comes with a new Member file is that Member's own; one
+    // added to, changed in or deleted from an existing record is checked like
+    // an edit to that record, unless the Member file's own change already was.
+    const slug = recordSlug(change.path)
+    const recordInPr = memberChanges.find((c) => c.path === memberPath(slug))
+    const existed = input.baseMembers.some((m) => m.path === memberPath(slug))
+    if (!byMaintainer && existed && recordInPr?.status !== 'modified' && recordInPr?.status !== 'deleted') {
+      const flag = checkOwnership(change, input)
+      if (flag) needsApproval.push(flag)
+    }
+  }
+  checkScreenshotPairs(
+    new Set([...memberChanges, ...screenshotChanges].map((c) => recordSlug(c.path))),
+    input,
+    errors,
+  )
 
   if (input.probeSite) {
     for (const { file, site } of sitesToFetch) {
@@ -375,7 +543,7 @@ export async function checkSubmission(input: SubmissionInput): Promise<Submissio
     }
   }
 
-  return { byMaintainer, memberChanges, errors, warnings, needsApproval }
+  return { byMaintainer, memberChanges, screenshotChanges, errors, warnings, needsApproval }
 }
 
 // ---------------------------------------------------------------------------
@@ -443,7 +611,11 @@ export function formatReport(report: SubmissionReport, author: string): string {
     report.memberChanges.length > 0
       ? `Member files in this PR: ${report.memberChanges.map((c) => `\`${c.path}\` (${c.status})`).join(', ')}.`
       : 'This PR changes no Member files.'
-  lines.push(who, files, '')
+  const shots =
+    report.screenshotChanges.length > 0
+      ? [`Screenshots in this PR: ${report.screenshotChanges.map((c) => `\`${c.path}\` (${c.status})`).join(', ')}.`]
+      : []
+  lines.push(who, files, ...shots, '')
 
   if (report.errors.length === 0) {
     lines.push('**Result: passed.** The blocking checks all pass.', '')

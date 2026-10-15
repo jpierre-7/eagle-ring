@@ -3,7 +3,7 @@
 
 - [ ] I take or took CS coursework at the School, or I'm Faculty.
 - [ ] This Site is mine.
-- [ ] This PR changes only my Member file.
+- [ ] This PR changes only my Member file (and my screenshot, if I added one).
 
 *If you're Faculty, link a public School page that shows your role.*
 

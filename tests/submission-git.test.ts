@@ -117,7 +117,7 @@ describe('reading a PR from git', () => {
     expect(input.maintainers).toEqual(['jpierre-7'])
     const report = await checkSubmission({ ...input, currentYear: 2026 })
     expect(report.byMaintainer).toBe(false)
-    expect(report.errors[0].message).toContain('also changes files outside `src/content/members/`: `CODEOWNERS`')
+    expect(report.errors[0].message).toContain('also changes files outside `src/content/members/` and `src/content/screenshots/`: `CODEOWNERS`')
   })
 })
 

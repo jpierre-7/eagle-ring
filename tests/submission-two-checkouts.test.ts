@@ -22,6 +22,7 @@ const CHECK_FILES = [
   'scripts/submission/git.ts',
   'scripts/submission/profile-hosts.ts',
   'src/lib/member.ts',
+  'src/lib/screenshot.ts',
 ]
 
 const CHECKS_SIGNATURE = 'export async function checkSubmission(input: SubmissionInput): Promise<SubmissionReport> {'
@@ -102,7 +103,7 @@ describe('running the base copy of the checks against the PR', () => {
     expect(real).toContain(CHECKS_SIGNATURE)
     const alwaysPass = real.replace(
       CHECKS_SIGNATURE,
-      `${CHECKS_SIGNATURE}\n  return { byMaintainer: false, memberChanges: [], errors: [], warnings: [], needsApproval: [] }`,
+      `${CHECKS_SIGNATURE}\n  return { byMaintainer: false, memberChanges: [], screenshotChanges: [], errors: [], warnings: [], needsApproval: [] }`,
     )
     const { pr, base } = twoCheckouts((write) => {
       write('scripts/submission/checks.ts', alwaysPass)

@@ -7,11 +7,13 @@
  * `hidden` and the script reveals them. They only exist at all with two or
  * more Members (the small-ring table in spec §5).
  */
+import { getImage } from 'astro:assets'
 import Base from '../layouts/Base.astro'
 import Icon from '../components/Icon.astro'
 import { url } from '../lib/url'
 import {
   members,
+  screenshots,
   countLine,
   graduationYearLabel,
   FACULTY_LABEL,
@@ -21,6 +23,7 @@ import {
   standingLabel,
   type Member,
 } from '../lib/members'
+import { PREVIEW_HEIGHT, PREVIEW_WIDTH } from '../lib/screenshot'
 
 const REPO_URL = 'https://github.com/jpierre-7/eagle-ring'
 const JOIN_URL = `${REPO_URL}/blob/main/CONTRIBUTING.md`
@@ -55,12 +58,26 @@ function searchText(member: Member): string {
 const bandId = (graduationYear: number | undefined) =>
   graduationYear === undefined ? 'faculty' : `year-${graduationYear}`
 
+/**
+ * Each screenshot, resized once for the hover preview: a WebP at twice the
+ * preview's CSS size, whatever size and format the Member uploaded.
+ */
+const previews = new Map(
+  await Promise.all(
+    [...screenshots].map(
+      async ([slug, src]) =>
+        [slug, (await getImage({ src, width: PREVIEW_WIDTH, height: PREVIEW_HEIGHT, format: 'webp' })).src] as const,
+    ),
+  ),
+)
+
 const rows = (list: Member[]) =>
   list.map((member) => ({
     member,
     domain: siteDomain(member.site),
     standing: member.status ? standingLabel(member.status) : undefined,
     search: searchText(member),
+    preview: previews.get(member.slug),
   }))
 ---
 
@@ -141,7 +158,7 @@ const rows = (list: Member[]) =>
                     </span>
                   </h2>
                   <ul class="roster" role="list">
-                    {rows(bandMembers).map(({ member, domain, standing, search }) => (
+                    {rows(bandMembers).map(({ member, domain, standing, search, preview }) => (
                       <li class="row" data-member data-search={search}>
                         <div class="who">
                           <a class="name" href={member.site} target="_blank">
@@ -150,6 +167,11 @@ const rows = (list: Member[]) =>
                           {member.faculty && <span class="faculty bg-accent text-on-accent">{FACULTY_LABEL}</span>}
                           {standing && <span class="standing">{standing}</span>}
                           {member.tagline && <p class="tagline">{member.tagline}</p>}
+                          {preview && (
+                            <span class="preview" aria-hidden="true">
+                              <img src={preview} width={PREVIEW_WIDTH} height={PREVIEW_HEIGHT} alt="" loading="lazy" decoding="async" />
+                            </span>
+                          )}
                         </div>
                         <span class="site">{domain}</span>
                         <a class="gh" href={`https://github.com/${member.github}`} target="_blank">
@@ -165,7 +187,7 @@ const rows = (list: Member[]) =>
             {hasControls && (
               <div data-view="az" hidden>
                 <ul class="roster az" role="list" aria-label="Members, A-Z">
-                  {rows(alphabetical).map(({ member, domain, standing, search }) => (
+                  {rows(alphabetical).map(({ member, domain, standing, search, preview }) => (
                     <li class="row" data-member data-search={search}>
                       <span class={member.graduationYear === undefined ? 'row-year row-word' : 'row-year'}>
                         {member.graduationYear !== undefined && <span class="sr-only">Graduation Year </span>}
@@ -178,6 +200,11 @@ const rows = (list: Member[]) =>
                         {member.faculty && <span class="faculty bg-accent text-on-accent">{FACULTY_LABEL}</span>}
                         {standing && <span class="standing">{standing}</span>}
                         {member.tagline && <p class="tagline">{member.tagline}</p>}
+                        {preview && (
+                          <span class="preview" aria-hidden="true">
+                            <img src={preview} width={PREVIEW_WIDTH} height={PREVIEW_HEIGHT} alt="" loading="lazy" decoding="async" />
+                          </span>
+                        )}
                       </div>
                       <span class="site">{domain}</span>
                       <a class="gh" href={`https://github.com/${member.github}`} target="_blank">
@@ -380,6 +407,42 @@ const rows = (list: Member[]) =>
     text-underline-offset: 3px;
   }
 
+  /* Screenshot preview (spec §5): a 16:9 picture of the Site that pops up
+     above the row while the row is hovered or its link has keyboard focus.
+     Only on devices with a real pointer; touch taps go straight to the Site.
+     It sits outside the link, takes no clicks, and is hidden from screen
+     readers, since the row already names the Site. `display: none` until
+     shown, so the lazy image only downloads on the first hover.
+
+     Absolutely placed against the row with no `left`, so it lines up with
+     the start of the name in both views. */
+  .preview {
+    display: none;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .preview {
+      position: absolute;
+      bottom: calc(100% + 0.5rem);
+      z-index: 2;
+      width: 20rem;
+      aspect-ratio: 16 / 9;
+      border: 2px solid var(--er-ink);
+      background: var(--er-surface-soft);
+      box-shadow: 6px 6px 0 var(--er-accent);
+      pointer-events: none;
+    }
+    .row:hover .preview,
+    .row:has(.name:focus-visible) .preview {
+      display: block;
+    }
+    .preview img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+  }
+
   /* A-Z: one roster, the full year at the start of each row. */
   .az .row {
     grid-template-columns: 4.75rem minmax(0, 1fr);
@@ -442,6 +505,20 @@ const rows = (list: Member[]) =>
       transition:
         transform 0.1s ease,
         box-shadow 0.15s ease;
+    }
+    /* The preview rises in from display: none. */
+    .preview {
+      transition:
+        display 0.15s allow-discrete,
+        opacity 0.15s ease,
+        translate 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @starting-style {
+      .row:hover .preview,
+      .row:has(.name:focus-visible) .preview {
+        opacity: 0;
+        translate: 0 4px;
+      }
     }
     .random:active,
     .seg button:active,
