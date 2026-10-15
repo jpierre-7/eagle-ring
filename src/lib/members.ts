@@ -36,7 +36,12 @@ export const screenshots: Map<string, ImageMetadata> = (() => {
     const { slug } = parseScreenshotEntry(entry)
     if (!slugs.has(slug)) fail(`there is no Member file for "${slug}"`)
     if (found.has(slug)) fail(`"${slug}" already has a screenshot; a Member has one at most`)
-    const sizeProblem = screenshotSizeProblem(image.width, image.height)
+    // Reading a field of an imported image marks the full-size original as
+    // used, and Astro then publishes it next to the preview. Read the size
+    // from Astro's own unmarked copy (`clone`, as `getImage` does), so only
+    // the 640×360 preview ships.
+    const { width, height } = (image as ImageMetadata & { clone?: ImageMetadata }).clone ?? image
+    const sizeProblem = screenshotSizeProblem(width, height)
     if (sizeProblem) fail(`the picture ${sizeProblem}`)
     found.set(slug, image)
   }

@@ -242,6 +242,13 @@ describe('screenshot previews on the Directory', () => {
     }
   })
 
+  it('publishes only the preview, not the full-size original', () => {
+    const published = readdirSync(join(dists.three, '_astro')).filter((name) => name.startsWith('kevin-tran.'))
+    expect(published).toHaveLength(1)
+    const src = /<span class="preview"[^>]*><img src="([^"]+)"/.exec(page('three', 'index.html'))![1]
+    expect(src).toBe(`/eagle-ring/_astro/${published[0]}`)
+  })
+
   it('shows no preview when no Member has a screenshot', () => {
     expect(page('two', 'index.html')).not.toContain('class="preview"')
   })
