@@ -1,18 +1,20 @@
 /**
  * Reads a Submission PR out of git: what it changes, the Member files before
- * and after, and the Maintainer from CODEOWNERS on the base.
+ * and after, the screenshots after, and the Maintainer from CODEOWNERS on the base.
  *
  * Everything is read from commits, never the working tree, so the result is
  * the same in CI and on a laptop with uncommitted edits.
  */
 import { execFileSync } from 'node:child_process'
 import { MEMBERS_DIR } from '../../src/lib/member.ts'
+import { SCREENSHOTS_DIR } from '../../src/lib/screenshot.ts'
 import {
   CODEOWNERS_PATHS,
   maintainersFromCodeowners,
   type ChangedFile,
   type ChangeStatus,
   type MemberFileText,
+  type ScreenshotFile,
   type SubmissionInput,
 } from './checks.ts'
 
@@ -58,6 +60,18 @@ export function memberFiles(repoDir: string, rev: string): MemberFileText[] {
     .map((path) => ({ path, text: showFile(repoDir, rev, path) ?? '' }))
 }
 
+/** Every file under the screenshots folder at a commit, with its bytes. */
+export function screenshotFiles(repoDir: string, rev: string): ScreenshotFile[] {
+  const out = git(repoDir, ['ls-tree', '-r', '-z', '--name-only', rev, '--', `${SCREENSHOTS_DIR}/`])
+  return out
+    .split('\0')
+    .filter(Boolean)
+    .map((path) => ({
+      path,
+      bytes: execFileSync('git', ['show', `${rev}:${path}`], { cwd: repoDir, maxBuffer: 64 * 1024 * 1024 }),
+    }))
+}
+
 /** The Maintainer's handles, from the first CODEOWNERS file on `rev`. */
 export function maintainersAt(repoDir: string, rev: string): string[] {
   for (const path of CODEOWNERS_PATHS) {
@@ -95,5 +109,6 @@ export function readSubmission({
     changedFiles: changedFiles(repoDir, mergeBase, head),
     headMembers: memberFiles(repoDir, head),
     baseMembers: memberFiles(repoDir, mergeBase),
+    headScreenshots: screenshotFiles(repoDir, head),
   }
 }

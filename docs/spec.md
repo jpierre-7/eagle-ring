@@ -131,6 +131,16 @@ One YAML file per Member at `src/content/members/<slug>.yaml`, loaded as an Astr
 
 There is no join-date field. Ring order is alphabetical by slug (section 6), which needs no extra data.
 
+### Screenshot
+
+Optional. A Member may add one 16:9 picture of their Site at `src/content/screenshots/<slug>.<ext>`, named after the slug of their Member file. The Directory shows it when the Member's row is hovered (section 5). It is a file next to the record, not a field.
+
+- **Format:** WebP, PNG or JPEG, as `.webp`, `.png` or `.jpg` (lowercase). The file must really be that format.
+- **Size:** 16:9 (to the nearest pixel), from 1280×720 to 1920×1080 pixels, at most 500 KB. 1280×720 WebP is the recommendation; it is usually well under 150 KB.
+- **One per Member.** A screenshot needs a Member file of the same slug; deleting a Member file deletes its screenshot in the same PR.
+- The build resizes each screenshot to a 640×360 WebP, so what the Directory serves stays small whatever was uploaded.
+- The rules live in `src/lib/screenshot.ts`. The build checks the name, the pairing and the pixel size; CI checks all of them plus the file size and the real format.
+
 Example, `src/content/members/kevin-tran.yaml`:
 
 ```yaml
@@ -153,7 +163,7 @@ A **Submission** is a pull request that adds or edits one Member's record. It is
 ### Steps for a new Member
 
 1. Fork the repo.
-2. Copy the example file to `src/content/members/<your-slug>.yaml` and fill it in.
+2. Copy the example file to `src/content/members/<your-slug>.yaml` and fill it in. Optionally, add a screenshot at `src/content/screenshots/<your-slug>.webp` (section 3).
 3. Open a PR and tick the three PR-template checkboxes.
 4. CI runs. The Maintainer reviews it, looks at the Site, and merges.
 5. Optional: add the Ring Widget to your Site (section 6).
@@ -169,9 +179,10 @@ A GitHub Actions workflow on `pull_request`:
   - `site` is not on the profile-page denylist.
   - `status` is not set on a future `graduationYear`, or when there is no `graduationYear`.
   - `graduationYear` is left out only with `faculty: true`.
-  - The PR changes **exactly one file under `src/content/members/` and nothing else**. The Maintainer's own PRs are exempt.
+  - The PR changes **one Member's record and nothing else**: exactly one file under `src/content/members/`, plus, optionally, that Member's screenshot under `src/content/screenshots/`. A PR may also change only the screenshot. The Maintainer's own PRs are exempt.
+  - A screenshot follows the rules in section 3 (name, format, size, one per Member, a Member file to go with it).
 - **Warning only:** CI fetches `site` once. If that fails, it reports a warning and the Maintainer decides (sites that block bots or start slowly would make this flaky).
-- **Ownership on edits:** if the PR edits an existing record and the PR author is not that record's `github`, CI flags the PR "needs Maintainer approval". This covers someone else editing a record and a Member who renamed their GitHub account.
+- **Ownership on edits:** if the PR edits an existing record and the PR author is not that record's `github`, CI flags the PR "needs Maintainer approval". This covers someone else editing a record and a Member who renamed their GitHub account. Adding, replacing or deleting the screenshot of an existing record counts as editing it.
 
 ### Edit and remove
 
@@ -185,7 +196,7 @@ A GitHub Actions workflow on `pull_request`:
 1. Who can be a Member (the rule above, in plain words).
 2. What you need first: a Site on `https://` and a GitHub account.
 3. Steps: fork, copy the example file, fill it in, open a PR.
-4. Every field and its rules, including the optional tagline, Standing and Faculty flag, and the optional Graduation Year for Faculty.
+4. Every field and its rules, including the optional tagline, Standing and Faculty flag, the optional Graduation Year for Faculty, and the optional screenshot.
 5. What CI checks, and what a warning means.
 6. Adding the Ring Widget: snippet A as the default, snippet B as the optional styled version, with the Member's slug filled in.
 7. Editing your record or leaving.
@@ -197,7 +208,7 @@ Three required checkboxes, an optional prompt for Faculty, and one free-text lin
 
 - [ ] I take or took CS coursework at the School, or I'm Faculty.
 - [ ] This Site is mine.
-- [ ] This PR changes only my Member file.
+- [ ] This PR changes only my Member file (and my screenshot, if I added one).
 
 *If you're Faculty, link a public School page that shows your role.*
 
@@ -225,7 +236,7 @@ Names the Maintainer for everything. Handing the ring over to a club later is a 
 - **Shape:** sharp corners everywhere.
 - **School identity:** no official School logo or palette. Yellow is the one School-adjacent accent. The footer says Eagle Ring is unofficial.
 - **Mark:** the "Eagle Ring" wordmark in the display face.
-- **Text-first:** no Site screenshots. The skill's "real images" rule deliberately doesn't apply here.
+- **Text-first:** the roster is text. A Member's optional Site screenshot (section 3) appears only as a hover preview, never in the row itself. The skill's "real images" rule otherwise doesn't apply here.
 - **Accessibility:** WCAG 2.2 AA as the floor, AAA contrast for body text, full keyboard navigation with a visible yellow focus ring, `prefers-reduced-motion` honoured.
 
 ### Page structure (top to bottom)
@@ -249,6 +260,7 @@ Names the Maintainer for everything. Handing the ring over to a club later is a 
   - `@github` in mono, linking to the GitHub profile.
 
   The whole row is clickable to the Site. The GitHub link sits above that layer and stays separately clickable.
+- **Screenshot preview:** for a Member with a screenshot, hovering the row, or focusing its link with the keyboard, pops up the screenshot above the row, lined up with the name: 320 CSS pixels wide, sharp corners, a 2px ink border and a hard yellow offset shadow. It only exists on devices with a fine pointer that can hover; on touch screens a tap goes straight to the Site. It takes no clicks, is hidden from screen readers (`aria-hidden`, empty `alt`, since the row already names the Site), and loads lazily on the first hover. With motion allowed it fades and rises in over 0.15s. Members without a screenshot get no popup.
 - **A-Z:** the bands go away. One roster sorted by name, with the full Graduation Year at the start of each row, or **Faculty & Staff** for Faculty with no Graduation Year.
 - **Search with no results:** *No Members match "…"* and a *Clear search* button.
 

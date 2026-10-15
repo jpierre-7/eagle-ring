@@ -61,6 +61,14 @@ async function build(slugs: string[]): Promise<string> {
   const members = join(copy, 'src', 'content', 'members')
   for (const file of readdirSync(members)) if (file !== '.gitkeep') rmSync(join(members, file))
   for (const slug of slugs) cpSync(join(FIXTURES, `${slug}.yaml`), join(members, `${slug}.yaml`))
+  // Screenshots go with their Members: only the fixtures' own, so far just Kevin's.
+  const screenshots = join(copy, 'src', 'content', 'screenshots')
+  rmSync(screenshots, { recursive: true, force: true })
+  mkdirSync(screenshots)
+  for (const slug of slugs) {
+    const shot = join(FIXTURES, `${slug}.webp`)
+    if (existsSync(shot)) cpSync(shot, join(screenshots, `${slug}.webp`))
+  }
   await promisify(execFile)(process.execPath, [join(copy, 'node_modules', 'astro', 'bin', 'astro.mjs'), 'build'], {
     cwd: copy,
     env: buildEnv(),
@@ -219,5 +227,22 @@ describe('404.html', () => {
       expect(go('three', path), path).toBeUndefined()
     }
     expect(page('three', '404.html')).toMatch(/<a href="\/eagle-ring"[^>]*>Go to the Directory<\/a>/)
+  })
+})
+
+describe('screenshot previews on the Directory', () => {
+  it('shows a resized WebP preview for a Member with a screenshot, and none for the others', () => {
+    const html = page('three', 'index.html')
+    const previews = [...html.matchAll(/<span class="preview"[^>]*><img src="([^"]+)" width="640" height="360" alt=""/g)]
+    // Once in the By year view and once in A-Z.
+    expect(previews).toHaveLength(2)
+    for (const [, src] of previews) {
+      expect(src).toMatch(/^\/eagle-ring\/_astro\/kevin-tran\.[\w-]+\.webp$/)
+      expect(existsSync(join(dists.three, src.replace(/^\/eagle-ring\//, '')))).toBe(true)
+    }
+  })
+
+  it('shows no preview when no Member has a screenshot', () => {
+    expect(page('two', 'index.html')).not.toContain('class="preview"')
   })
 })

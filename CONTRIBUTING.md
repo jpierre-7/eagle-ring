@@ -11,9 +11,10 @@ This guide takes you from nothing to listed. You don't need to have used git bef
 
 1. Fork the repo and copy [`docs/member-example.yaml`](docs/member-example.yaml) to `src/content/members/<your-slug>.yaml`. The slug is 2 to 32 lowercase letters and digits in groups joined by single hyphens, like `kevin-tran`. It never changes after merge.
 2. Fill in `name`, `site`, `graduationYear` and `github`. `tagline` and `status` are optional. If you're Faculty (you teach or taught CS at the School, or work or worked there with CS students, for example as a dean or an advisor), add `faculty: true`; Faculty who never studied at the School leave out `graduationYear`. The rules are in [section 4](#4-every-field-and-its-rules).
-3. Open a PR against `main` that changes **only** that one file, and tick the three boxes in the template. Faculty also link a public School page that shows their role.
-4. Fix anything [CI](#5-what-ci-checks) flags. The Maintainer reviews your Site and merges.
-5. Optional: add the [Ring Widget](#6-adding-the-ring-widget) to your Site.
+3. Optional: add a 16:9 [screenshot](#your-screenshot-optional) of your Site at `src/content/screenshots/<your-slug>.webp` (or `.png` / `.jpg`), 1280×720 to 1920×1080, at most 500 KB. The Directory shows it when someone hovers over your row.
+4. Open a PR against `main` that changes **only** your Member file (and your screenshot, if you added one), and tick the three boxes in the template. Faculty also link a public School page that shows their role.
+5. Fix anything [CI](#5-what-ci-checks) flags. The Maintainer reviews your Site and merges.
+6. Optional: add the [Ring Widget](#6-adding-the-ring-widget) to your Site.
 
 New to GitHub? Skip this and follow the full guide below.
 
@@ -109,14 +110,24 @@ status: transferred
 
 When you're done, click **Commit changes**, write a short message such as `Add kevin-tran`, and click **Commit changes** again.
 
+### Step 4b (optional): Add a screenshot of your Site
+
+If you'd like, the Directory can show a small picture of your Site when someone hovers over your name. [Your screenshot](#your-screenshot-optional) in section 4 has the rules and how to make one. To upload it:
+
+1. In your fork, open the folder `src/content/screenshots/`.
+2. Click **Add file**, then **Upload files**, and drag your picture in. Its name must be your slug plus `.webp`, `.png` or `.jpg`, for example `kevin-tran.webp`. Rename it on your computer first if needed.
+3. Click **Commit changes**.
+
+You can also do this later, in its own PR.
+
 ### Step 5: Open your pull request
 
 1. At the top of your fork, click **Contribute**, then **Open pull request**.
-2. Check that the PR shows exactly one new file: yours.
+2. Check that the PR shows exactly one new file, yours, or two if you added a screenshot.
 3. The description box already holds three checkboxes. Tick each one by changing `[ ]` to `[x]`:
    - I take or took CS coursework at the School, or I'm Faculty.
    - This Site is mine.
-   - This PR changes only my Member file.
+   - This PR changes only my Member file (and my screenshot, if I added one).
 4. If you're Faculty, link a public School page that shows your role (a course schedule or a staff listing).
 5. Under *Anything the Maintainer should know?*, add a note if you like, or leave it empty.
 6. Click **Create pull request**.
@@ -213,6 +224,21 @@ These rules are checked by code. If this page and the code ever disagree, the co
 - The Directory shows a yellow **Faculty & Staff** label next to your name, and searching for "faculty" or "staff" finds you.
 - In your PR, link a public School page that shows your role. The Maintainer checks it before merging (see [section 1](#1-who-can-be-a-member)).
 
+### Your screenshot (optional)
+
+A picture of your Site that pops up when someone hovers over your row in the Directory (on a computer; phones don't show it). It's a separate file, not a field in your Member file.
+
+- **Where:** `src/content/screenshots/<your-slug>.webp`, for example `src/content/screenshots/kevin-tran.webp`. The name is your slug, the same as your Member file's.
+- **Format:** WebP (`.webp`), PNG (`.png`) or JPEG (`.jpg`), with a lowercase extension. The file must really be that format: renaming a `.png` to `.webp` doesn't convert it.
+- **Shape and size:** 16:9, from 1280×720 to 1920×1080 pixels. 1280×720 is best.
+- **File size:** at most 500 KB. A 1280×720 WebP is usually under 150 KB; PNGs are bigger, so convert to WebP if yours is too large (for example at [squoosh.app](https://squoosh.app)).
+- **One per Member.** If you delete your Member file, delete your screenshot in the same PR.
+- **Content:** your own Site, as a visitor sees it. The Maintainer reviews it like the rest of your Submission.
+
+To make one: open your Site in a desktop browser with the window about 1280 pixels wide, take a screenshot of the visible page (no browser bars), then crop it to 16:9 and resize it to 1280×720. In Chrome or Edge, you can open DevTools (F12), turn on the device toolbar (Ctrl+Shift+M), set the size to 1280 × 720, and choose **Capture screenshot** from its **⋮** menu: that gives exactly 1280×720.
+
+To change it later, upload a new file with the same name. To remove it, delete the file. Either way, open a PR as usual.
+
 ### No other fields
 
 Only the seven fields above are allowed. Any other field (a typo like `Name:` or `graduation_year:` counts) fails the check with "is not a Member field". Field names are case-sensitive.
@@ -229,9 +255,10 @@ When you open or update your PR, CI runs a check called **Submission checks**. Y
 
 **Blocking checks.** If any of these fail, the PR can't be merged until you fix it:
 
-- **One file only.** Your PR changes **exactly one file** in `src/content/members/` **and nothing else**. The Maintainer's own PRs are exempt.
+- **Your record only.** Your PR changes **exactly one file** in `src/content/members/`, plus, optionally, your screenshot in `src/content/screenshots/`, **and nothing else**. A PR that only adds, replaces or deletes your screenshot is fine too. The Maintainer's own PRs are exempt.
   - **Never rename your file.** A rename counts as deleting one Member file and adding another, which is two files. Your slug stays the same forever once it's merged.
 - **Valid file.** The filename is a valid slug, the file is valid YAML, and every field follows [section 4](#4-every-field-and-its-rules).
+- **Valid screenshot**, if you added one. It follows [the screenshot rules](#your-screenshot-optional): named after your slug, a real WebP, PNG or JPEG, 16:9 from 1280×720 to 1920×1080, at most 500 KB.
 - **Not a profile page.** Your `site` isn't on the list of profile and social services (see [`site`](#site-required)).
 - **Not already taken.** Your `site` and `github` aren't already used by another Member.
 - **The Directory still builds** with your file in it.
@@ -240,7 +267,7 @@ When you open or update your PR, CI runs a check called **Submission checks**. Y
 
 **Warning only: Site reachability.** CI tries to open your Site once. If it can't, you'll see a warning, not a failure. Some Sites block robots or are slow to wake up, so this can happen even when your Site works fine. The Maintainer checks it by hand and decides.
 
-**"Needs Maintainer approval".** If your PR edits or deletes a record that already exists, and your GitHub account isn't the one in that record's `github` field, the check's summary says the PR needs Maintainer approval. This covers someone editing another person's record, and a Member who renamed their GitHub account. It never fails the check. It means the Maintainer will check with the owner before merging. If you renamed your GitHub account, say so in your PR description.
+**"Needs Maintainer approval".** If your PR edits or deletes a record that already exists (adding, replacing or deleting its screenshot counts), and your GitHub account isn't the one in that record's `github` field, the check's summary says the PR needs Maintainer approval. This covers someone editing another person's record, and a Member who renamed their GitHub account. It never fails the check. It means the Maintainer will check with the owner before merging. If you renamed your GitHub account, say so in your PR description.
 
 The first time you open a PR, GitHub may wait for the Maintainer to approve running CI at all. That's a normal GitHub safety step for new contributors.
 
@@ -308,7 +335,7 @@ Open a new PR that changes your own file, from the GitHub account named in its `
 
 ### Leaving
 
-- Open a PR that deletes your file: open it in your fork, click the **...** menu, choose **Delete file**, commit, and open a PR.
+- Open a PR that deletes your file: open it in your fork, click the **...** menu, choose **Delete file**, commit, and open a PR. If you added a screenshot, delete it in the same PR.
 - If you don't use git, [open an issue](https://github.com/jpierre-7/eagle-ring/issues/new) asking to be removed instead.
 - Take the Ring Widget off your Site. If you forget, its links still work: they send visitors on to the right neighbours.
 
